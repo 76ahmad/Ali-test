@@ -145,14 +145,15 @@
                 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">סוג רכב</label>
-                    <input type="text" id="carType" list="carTypeSuggestions" placeholder="טויוטה, מרצדס, וכו'" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" oninput="handleCarTypeChange()">
+                    <input type="text" id="carType" list="carTypeSuggestions" placeholder="טויוטה, מרצדס, וכו'" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" onchange="handleCarTypeChange()" onblur="handleCarTypeChange()">
                     <datalist id="carTypeSuggestions"></datalist>
                 </div>
                 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">דגם</label>
-                    <input type="text" id="model" list="modelSuggestions" placeholder="קורולה, אלטימה, וכו'" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" oninput="handleModelChange()">
+                    <input type="text" id="model" list="modelSuggestions" placeholder="קורולה, אלטימה, וכו'" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" onchange="handleModelChange()" onblur="handleModelChange()">
                     <datalist id="modelSuggestions"></datalist>
+                    <p class="text-xs text-blue-600 mt-1">💡 בחר מהרשימה למילוי אוטומטי</p>
                 </div>
                 
                 <div>
@@ -317,16 +318,21 @@
             const modelInput = document.getElementById('model');
             const datalist = document.getElementById('modelSuggestions');
             
+            console.log('Car type changed:', carType);
+            
             // Clear model suggestions
             datalist.innerHTML = '';
             
-            // Find matching car type in database
+            // Find matching car type in database (case insensitive)
             const matchingBrand = Object.keys(carModelsDatabase).find(brand => 
-                brand.toLowerCase() === carType.toLowerCase()
+                brand === carType || brand.toLowerCase() === carType.toLowerCase()
             );
+            
+            console.log('Matching brand:', matchingBrand);
             
             if (matchingBrand && carModelsDatabase[matchingBrand]) {
                 const models = Object.keys(carModelsDatabase[matchingBrand].models);
+                console.log('Available models:', models);
                 datalist.innerHTML = models.map(model => 
                     `<option value="${model}">`
                 ).join('');
@@ -338,25 +344,40 @@
             const carType = document.getElementById('carType').value.trim();
             const model = document.getElementById('model').value.trim();
             
-            // Find matching brand
+            console.log('Model changed:', model, 'for car type:', carType);
+            
+            // Find matching brand (case insensitive)
             const matchingBrand = Object.keys(carModelsDatabase).find(brand => 
-                brand.toLowerCase() === carType.toLowerCase()
+                brand === carType || brand.toLowerCase() === carType.toLowerCase()
             );
+            
+            console.log('Found brand:', matchingBrand);
             
             if (matchingBrand && carModelsDatabase[matchingBrand]) {
                 const models = carModelsDatabase[matchingBrand].models;
                 
-                // Find matching model
+                // Find matching model (case insensitive)
                 const matchingModel = Object.keys(models).find(m => 
-                    m.toLowerCase() === model.toLowerCase()
+                    m === model || m.toLowerCase() === model.toLowerCase()
                 );
+                
+                console.log('Found model:', matchingModel);
                 
                 if (matchingModel && models[matchingModel]) {
                     const modelData = models[matchingModel];
                     
+                    console.log('Auto-filling:', modelData);
+                    
                     // Auto-fill engine type and power
                     document.getElementById('engineType').value = modelData.engineType || '';
                     document.getElementById('enginePower').value = modelData.enginePower || '';
+                    
+                    // Show success message
+                    const modelInput = document.getElementById('model');
+                    modelInput.style.borderColor = '#10b981';
+                    setTimeout(() => {
+                        modelInput.style.borderColor = '';
+                    }, 1000);
                 }
             }
         }
@@ -607,6 +628,7 @@
             document.getElementById('engineType').value = '';
             document.getElementById('enginePower').value = '';
             displayCarImagePreview();
+            populateCarTypeSuggestions();
             document.getElementById('carModal').classList.remove('hidden');
         }
 
@@ -628,6 +650,8 @@
             document.getElementById('engineType').value = car.engineType || '';
             document.getElementById('enginePower').value = car.enginePower || '';
             displayCarImagePreview();
+            populateCarTypeSuggestions();
+            handleCarTypeChange();
             document.getElementById('carModal').classList.remove('hidden');
         }
 
