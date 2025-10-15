@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת ניהול מוסך - Firebase</title>
+    <title>מערכת ניהול מוסך - גרסה מתוקנת</title>
+    
+    <!-- Tailwind CSS - الرابط الصحيح -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase SDK v9 Compat -->
+    <!-- Firebase v9 - مع كل المكتبات المطلوبة -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     
     <style>
         * {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         .loader {
             border: 3px solid #f3f3f3;
             border-top: 3px solid #3b82f6;
@@ -24,21 +27,21 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
         .image-preview {
             position: relative;
             display: inline-block;
         }
-        .image-preview img {
-            object-fit: cover;
-        }
-        .delete-image-btn {
+        
+        .delete-btn {
             position: absolute;
             top: 5px;
-            left: 5px;
+            right: 5px;
             background: rgba(239, 68, 68, 0.9);
             color: white;
             border-radius: 50%;
@@ -51,12 +54,14 @@
             font-size: 18px;
             font-weight: bold;
         }
-        .delete-image-btn:hover {
+        
+        .delete-btn:hover {
             background: rgba(220, 38, 38, 1);
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+
     <!-- Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
         <div class="text-center">
@@ -70,7 +75,7 @@
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <div class="text-center mb-8">
                 <div class="bg-blue-600 p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
                         <circle cx="7" cy="17" r="2"/>
                         <path d="M9 17h6"/>
@@ -86,13 +91,15 @@
             <form id="loginForm" class="space-y-4">
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">אימייל</label>
-                    <input type="email" id="loginEmail" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="your@email.com">
+                    <input type="email" id="loginEmail" required 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">סיסמה</label>
-                    <input type="password" id="loginPassword" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="••••••••">
+                    <input type="password" id="loginPassword" required 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+                <button type="submit" id="loginBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
                     התחבר
                 </button>
             </form>
@@ -105,58 +112,33 @@
         </div>
     </div>
 
+    <!-- Main App -->
     <div id="app" class="container mx-auto px-4 py-8 hidden">
         <!-- Header -->
         <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-600 p-3 rounded-xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-                            <circle cx="7" cy="17" r="2"/>
-                            <path d="M9 17h6"/>
-                            <circle cx="17" cy="17" r="2"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-4xl font-bold text-gray-800">מערכת ניהול מוסך</h1>
-                </div>
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <h1 class="text-3xl font-bold text-gray-800">מערכת ניהול מוסך</h1>
                 <div class="flex gap-3">
-                    <button onclick="showAddCarForm()" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
+                    <button onclick="showAddCarModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
                         הוסף רכב
                     </button>
-                    <button onclick="exportToExcel()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        ייצא לאקסל
-                    </button>
-                    <button onclick="logout()" class="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
                         יציאה
                     </button>
                 </div>
             </div>
-
-            <div class="relative mb-6">
-                <svg class="absolute right-4 top-3.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input type="text" id="searchInput" onkeyup="filterCars()" placeholder="חיפוש לפי מספר רישוי או שם בעלים..." class="w-full pr-12 pl-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
+            
+            <!-- Search -->
+            <div class="mt-6">
+                <input type="text" id="searchInput" placeholder="חיפוש לפי מספר רישוי או שם..." 
+                       onkeyup="filterCars()" 
+                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
             </div>
-
-            <div class="text-gray-600 mb-4">
-                סך הכל רכבים: <span id="carCount" class="font-bold text-blue-600">0</span>
+            
+            <!-- Statistics -->
+            <div class="mt-6">
+                <span class="text-gray-600">סה"כ רכבים: </span>
+                <span id="carCount" class="font-bold text-blue-600">0</span>
             </div>
         </div>
 
@@ -165,7 +147,7 @@
 
         <!-- Empty State -->
         <div id="emptyState" class="bg-white rounded-2xl shadow-xl p-12 text-center hidden">
-            <svg class="mx-auto text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="mx-auto text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
                 <circle cx="7" cy="17" r="2"/>
                 <path d="M9 17h6"/>
@@ -179,28 +161,20 @@
     <!-- Add/Edit Car Modal -->
     <div id="carModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 id="carModalTitle" class="text-2xl font-bold mb-6 text-gray-800">הוספת רכב חדש</h2>
+            <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-800">הוספת רכב חדש</h2>
             
+            <!-- Image Upload -->
             <div class="mb-6">
                 <label class="block text-gray-700 font-semibold mb-2">תמונת הרכב</label>
-                <input type="file" id="carImageInput" accept="image/*" onchange="handleCarImageUpload(event)" class="hidden">
-                <div id="carImagePreview" class="mb-4"></div>
-                <button onclick="document.getElementById('carImageInput').click()" class="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                    </svg>
+                <input type="file" id="carImageInput" accept="image/*" class="hidden" onchange="handleImageSelect(event)">
+                <div id="imagePreview" class="mb-4"></div>
+                <button onclick="document.getElementById('carImageInput').click()" 
+                        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
                     העלה תמונה
                 </button>
-                <div id="uploadProgress" class="hidden mt-4">
-                    <div class="bg-gray-200 rounded-full h-2">
-                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-2">מעלה תמונה... <span id="progressPercent">0</span>%</p>
-                </div>
             </div>
             
+            <!-- Form Fields -->
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">מספר רישוי *</label>
@@ -213,31 +187,32 @@
                 </div>
                 
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-2">מספר טלפון</label>
+                    <label class="block text-gray-700 font-semibold mb-2">טלפון</label>
                     <input type="text" id="phone" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
                 </div>
                 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">סוג רכב</label>
-                    <input type="text" id="carType" placeholder="טויוטה, מרצדס, וכו'" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
+                    <input type="text" id="carType" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
                 </div>
                 
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">דגם</label>
-                    <input type="text" id="model" placeholder="קורולה, אלטימה, וכו'" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
+                    <input type="text" id="model" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
                 </div>
                 
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-2">שנת ייצור</label>
-                    <input type="text" id="year" placeholder="2020" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
+                    <label class="block text-gray-700 font-semibold mb-2">שנה</label>
+                    <input type="text" id="year" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
                 </div>
             </div>
 
+            <!-- Buttons -->
             <div class="flex gap-3 justify-end">
                 <button onclick="closeCarModal()" class="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition">
                     ביטול
                 </button>
-                <button onclick="saveCar()" id="saveCarBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <button onclick="saveCar()" id="saveBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                     שמור
                 </button>
             </div>
@@ -258,24 +233,25 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        const firestore = firebase.firestore();
         const auth = firebase.auth();
+        const storage = firebase.storage();
 
-        // Global variables
+        // Global Variables
         let currentUser = null;
         let cars = [];
         let editingCarId = null;
-        let tempCarImage = null;
-        let tempCarImageFile = null;
+        let tempImageFile = null;
+        let tempImageUrl = null;
+        let isRegisterMode = false;
 
-        // Authentication
-        auth.onAuthStateChanged((user) => {
+        // Authentication State Observer
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                loadCars();
+                await loadCars();
             } else {
                 currentUser = null;
                 document.getElementById('loginScreen').classList.remove('hidden');
@@ -284,78 +260,54 @@
             document.getElementById('loadingScreen').classList.add('hidden');
         });
 
-        // Login form
+        // Login Form Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = isRegisterMode ? 'מתחבר...' : 'מתחבר...';
             
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                if (isRegisterMode) {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                    await firestore.collection('users').doc(auth.currentUser.uid).set({
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    await auth.signInWithEmailAndPassword(email, password);
+                }
             } catch (error) {
-                showLoginError('שם משתמש או סיסמה שגויים');
+                showError(getErrorMessage(error.code));
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = isRegisterMode ? 'הירשם' : 'התחבר';
             }
         });
 
-        function showLoginError(message) {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
-        }
-
+        // Toggle Register/Login Mode
         function toggleRegisterMode() {
-            const form = document.getElementById('loginForm');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const toggleBtn = form.parentElement.querySelector('button[onclick="toggleRegisterMode()"]');
+            isRegisterMode = !isRegisterMode;
+            const loginBtn = document.getElementById('loginBtn');
+            const toggleBtn = event.target;
             
-            if (submitBtn.textContent === 'התחבר') {
-                submitBtn.textContent = 'הירשם';
+            if (isRegisterMode) {
+                loginBtn.textContent = 'הירשם';
                 toggleBtn.textContent = 'יש לך חשבון? התחבר כאן';
-                form.onsubmit = async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('loginEmail').value;
-                    const password = document.getElementById('loginPassword').value;
-                    
-                    try {
-                        await auth.createUserWithEmailAndPassword(email, password);
-                    } catch (error) {
-                        if (error.code === 'auth/email-already-in-use') {
-                            showLoginError('האימייל כבר בשימוש');
-                        } else if (error.code === 'auth/weak-password') {
-                            showLoginError('הסיסמה חלשה מדי (מינימום 6 תווים)');
-                        } else {
-                            showLoginError('שגיאה בהרשמה');
-                        }
-                    }
-                };
             } else {
-                submitBtn.textContent = 'התחבר';
+                loginBtn.textContent = 'התחבר';
                 toggleBtn.textContent = 'אין לך חשבון? הירשם כאן';
-                form.onsubmit = async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('loginEmail').value;
-                    const password = document.getElementById('loginPassword').value;
-                    
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                    } catch (error) {
-                        showLoginError('שם משתמש או סיסמה שגויים');
-                    }
-                };
             }
         }
 
-        function logout() {
-            if (confirm('האם אתה בטוח שברצונך לצאת?')) {
-                auth.signOut();
-            }
-        }
-
-        // Load cars from Firestore
+        // Load Cars
         async function loadCars() {
             try {
-                const snapshot = await db.collection('cars')
+                const snapshot = await firestore.collection('cars')
                     .where('userId', '==', currentUser.uid)
                     .orderBy('createdAt', 'desc')
                     .get();
@@ -368,71 +320,21 @@
                 renderCars();
             } catch (error) {
                 console.error('Error loading cars:', error);
+                // If orderBy fails, try without it
+                const snapshot = await firestore.collection('cars')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                cars = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                renderCars();
             }
         }
 
-        // Handle car image upload
-        function handleCarImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                tempCarImageFile = file;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempCarImage = e.target.result;
-                    displayCarImagePreview();
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Display car image preview
-        function displayCarImagePreview() {
-            const preview = document.getElementById('carImagePreview');
-            if (tempCarImage) {
-                preview.innerHTML = `
-                    <div class="image-preview">
-                        <img src="${tempCarImage}" alt="Car" class="w-full h-48 rounded-lg">
-                        <span class="delete-image-btn" onclick="deleteCarImage()">×</span>
-                    </div>
-                `;
-            } else {
-                preview.innerHTML = '';
-            }
-        }
-
-        // Delete car image
-        function deleteCarImage() {
-            tempCarImage = null;
-            tempCarImageFile = null;
-            displayCarImagePreview();
-        }
-
-        // Upload image to Firebase Storage
-        async function uploadImage(file, path) {
-            const storageRef = storage.ref(path);
-            const uploadTask = storageRef.put(file);
-            
-            return new Promise((resolve, reject) => {
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        document.getElementById('uploadProgress').classList.remove('hidden');
-                        document.getElementById('progressBar').style.width = progress + '%';
-                        document.getElementById('progressPercent').textContent = Math.round(progress);
-                    },
-                    (error) => {
-                        reject(error);
-                    },
-                    async () => {
-                        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                        document.getElementById('uploadProgress').classList.add('hidden');
-                        resolve(downloadURL);
-                    }
-                );
-            });
-        }
-
-        // Render cars grid
+        // Render Cars
         function renderCars() {
             const grid = document.getElementById('carsGrid');
             const emptyState = document.getElementById('emptyState');
@@ -449,12 +351,14 @@
             emptyState.classList.add('hidden');
             
             grid.innerHTML = cars.map(car => `
-                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition car-card" data-plate="${car.plateNumber}" data-owner="${car.ownerName}">
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition car-item" 
+                     data-plate="${car.plateNumber}" data-owner="${car.ownerName}">
                     ${car.imageUrl ? `
-                        <img src="${car.imageUrl}" alt="${car.plateNumber}" class="w-full h-48 object-cover rounded-t-xl">
+                        <img src="${car.imageUrl}" alt="${car.plateNumber}" 
+                             class="w-full h-48 object-cover rounded-t-xl">
                     ` : `
                         <div class="w-full h-48 bg-gray-200 rounded-t-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400">
                                 <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
                                 <circle cx="7" cy="17" r="2"/>
                                 <path d="M9 17h6"/>
@@ -470,119 +374,139 @@
                             </div>
                             <div class="flex gap-2">
                                 <button onclick="editCar('${car.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                    </svg>
+                                    ✏️
                                 </button>
                                 <button onclick="deleteCar('${car.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    </svg>
+                                    🗑️
                                 </button>
                             </div>
                         </div>
-
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">טלפון:</span>
-                                <span class="font-semibold">${car.phone || '-'}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">סוג:</span>
-                                <span class="font-semibold">${car.carType || '-'}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">דגם:</span>
-                                <span class="font-semibold">${car.model || '-'}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">שנה:</span>
-                                <span class="font-semibold">${car.year || '-'}</span>
-                            </div>
+                        <div class="space-y-1 text-sm">
+                            ${car.phone ? `<p><span class="text-gray-600">טלפון:</span> ${car.phone}</p>` : ''}
+                            ${car.carType ? `<p><span class="text-gray-600">סוג:</span> ${car.carType}</p>` : ''}
+                            ${car.model ? `<p><span class="text-gray-600">דגם:</span> ${car.model}</p>` : ''}
+                            ${car.year ? `<p><span class="text-gray-600">שנה:</span> ${car.year}</p>` : ''}
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Filter cars
+        // Filter Cars
         function filterCars() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.car-card');
-            
+            const carItems = document.querySelectorAll('.car-item');
             let visibleCount = 0;
             
-            cards.forEach(card => {
-                const plate = card.dataset.plate.toLowerCase();
-                const owner = card.dataset.owner.toLowerCase();
+            carItems.forEach(item => {
+                const plate = item.dataset.plate.toLowerCase();
+                const owner = item.dataset.owner.toLowerCase();
                 
                 if (plate.includes(searchTerm) || owner.includes(searchTerm)) {
-                    card.style.display = 'block';
+                    item.style.display = 'block';
                     visibleCount++;
                 } else {
-                    card.style.display = 'none';
+                    item.style.display = 'none';
                 }
             });
             
             document.getElementById('carCount').textContent = visibleCount;
         }
 
-        // Show add car form
-        function showAddCarForm() {
+        // Show Add Car Modal
+        function showAddCarModal() {
             editingCarId = null;
-            tempCarImage = null;
-            tempCarImageFile = null;
-            document.getElementById('carModalTitle').textContent = 'הוספת רכב חדש';
+            tempImageFile = null;
+            tempImageUrl = null;
+            
+            document.getElementById('modalTitle').textContent = 'הוספת רכב חדש';
             document.getElementById('plateNumber').value = '';
             document.getElementById('ownerName').value = '';
             document.getElementById('phone').value = '';
             document.getElementById('carType').value = '';
             document.getElementById('model').value = '';
             document.getElementById('year').value = '';
-            displayCarImagePreview();
+            document.getElementById('imagePreview').innerHTML = '';
+            
             document.getElementById('carModal').classList.remove('hidden');
         }
 
-        // Edit car
-        async function editCar(carId) {
+        // Edit Car
+        function editCar(carId) {
             const car = cars.find(c => c.id === carId);
             if (!car) return;
             
             editingCarId = carId;
-            tempCarImage = car.imageUrl || null;
-            document.getElementById('carModalTitle').textContent = 'עריכת רכב';
-            document.getElementById('plateNumber').value = car.plateNumber;
-            document.getElementById('ownerName').value = car.ownerName;
+            tempImageUrl = car.imageUrl || null;
+            
+            document.getElementById('modalTitle').textContent = 'עריכת רכב';
+            document.getElementById('plateNumber').value = car.plateNumber || '';
+            document.getElementById('ownerName').value = car.ownerName || '';
             document.getElementById('phone').value = car.phone || '';
             document.getElementById('carType').value = car.carType || '';
             document.getElementById('model').value = car.model || '';
             document.getElementById('year').value = car.year || '';
-            displayCarImagePreview();
+            
+            if (car.imageUrl) {
+                document.getElementById('imagePreview').innerHTML = `
+                    <div class="image-preview">
+                        <img src="${car.imageUrl}" class="w-full h-48 rounded-lg object-cover">
+                        <button onclick="removeImage()" class="delete-btn">×</button>
+                    </div>
+                `;
+            }
+            
             document.getElementById('carModal').classList.remove('hidden');
         }
 
-        // Save car
+        // Handle Image Select
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                tempImageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = `
+                        <div class="image-preview">
+                            <img src="${e.target.result}" class="w-full h-48 rounded-lg object-cover">
+                            <button onclick="removeImage()" class="delete-btn">×</button>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Remove Image
+        function removeImage() {
+            tempImageFile = null;
+            tempImageUrl = null;
+            document.getElementById('imagePreview').innerHTML = '';
+            document.getElementById('carImageInput').value = '';
+        }
+
+        // Save Car
         async function saveCar() {
             const plateNumber = document.getElementById('plateNumber').value.trim();
             const ownerName = document.getElementById('ownerName').value.trim();
             
             if (!plateNumber || !ownerName) {
-                alert('נא להזין מספר רישוי ושם הבעלים');
+                alert('נא למלא מספר רישוי ושם בעלים');
                 return;
             }
             
-            const saveBtn = document.getElementById('saveCarBtn');
+            const saveBtn = document.getElementById('saveBtn');
             saveBtn.disabled = true;
             saveBtn.textContent = 'שומר...';
             
             try {
-                let imageUrl = tempCarImage;
+                let imageUrl = tempImageUrl;
                 
                 // Upload new image if selected
-                if (tempCarImageFile) {
-                    const imagePath = `cars/${currentUser.uid}/${Date.now()}_${tempCarImageFile.name}`;
-                    imageUrl = await uploadImage(tempCarImageFile, imagePath);
+                if (tempImageFile) {
+                    const imagePath = `cars/${currentUser.uid}/${Date.now()}_${tempImageFile.name}`;
+                    const uploadTask = await storage.ref(imagePath).put(tempImageFile);
+                    imageUrl = await uploadTask.ref.getDownloadURL();
                 }
                 
                 const carData = {
@@ -598,14 +522,15 @@
                 };
                 
                 if (editingCarId) {
-                    await db.collection('cars').doc(editingCarId).update(carData);
+                    await firestore.collection('cars').doc(editingCarId).update(carData);
                 } else {
                     carData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    await db.collection('cars').add(carData);
+                    await firestore.collection('cars').add(carData);
                 }
                 
-                await loadCars();
                 closeCarModal();
+                await loadCars();
+                
             } catch (error) {
                 console.error('Error saving car:', error);
                 alert('שגיאה בשמירת הרכב');
@@ -615,15 +540,7 @@
             }
         }
 
-        // Close car modal
-        function closeCarModal() {
-            document.getElementById('carModal').classList.add('hidden');
-            editingCarId = null;
-            tempCarImage = null;
-            tempCarImageFile = null;
-        }
-
-        // Delete car
+        // Delete Car
         async function deleteCar(carId) {
             if (!confirm('האם אתה בטוח שברצונך למחוק רכב זה?')) return;
             
@@ -631,7 +548,7 @@
                 const car = cars.find(c => c.id === carId);
                 
                 // Delete image from storage if exists
-                if (car.imageUrl) {
+                if (car && car.imageUrl) {
                     try {
                         const imageRef = storage.refFromURL(car.imageUrl);
                         await imageRef.delete();
@@ -640,33 +557,51 @@
                     }
                 }
                 
-                await db.collection('cars').doc(carId).delete();
+                await firestore.collection('cars').doc(carId).delete();
                 await loadCars();
+                
             } catch (error) {
                 console.error('Error deleting car:', error);
                 alert('שגיאה במחיקת הרכב');
             }
         }
 
-        // Export to Excel
-        function exportToExcel() {
-            let csvContent = "\uFEFFמספר רישוי,שם הבעלים,מספר טלפון,סוג רכב,דגם,שנת ייצור\n";
-            
-            cars.forEach(car => {
-                csvContent += `${car.plateNumber},${car.ownerName},${car.phone || ''},${car.carType || ''},${car.model || ''},${car.year || ''}\n`;
-            });
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'garage_data.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // Close Car Modal
+        function closeCarModal() {
+            document.getElementById('carModal').classList.add('hidden');
+            editingCarId = null;
+            tempImageFile = null;
+            tempImageUrl = null;
+        }
+
+        // Logout
+        async function logout() {
+            if (confirm('האם אתה בטוח שברצונך לצאת?')) {
+                await auth.signOut();
+            }
+        }
+
+        // Show Error
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // Get Error Message
+        function getErrorMessage(code) {
+            const messages = {
+                'auth/user-not-found': 'המשתמש לא נמצא',
+                'auth/wrong-password': 'סיסמה שגויה',
+                'auth/email-already-in-use': 'האימייל כבר בשימוש',
+                'auth/weak-password': 'הסיסמה חלשה מדי (מינימום 6 תווים)',
+                'auth/invalid-email': 'כתובת אימייל לא תקינה',
+                'auth/too-many-requests': 'יותר מדי ניסיונות, נסה שוב מאוחר יותר'
+            };
+            return messages[code] || 'שגיאה בהתחברות';
         }
     </script>
+
 </body>
 </html>
