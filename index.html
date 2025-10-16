@@ -1,607 +1,216 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת ניהול מוסך - גרסה מתוקנת</title>
-    
-    <!-- Tailwind CSS - الرابط الصحيح -->
+    <title>لوحة تحكم المشرف - نظام المرآب</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase v9 - مع كل المكتبات المطلوبة -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     
-    <style>
-        * {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .image-preview {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .delete-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .delete-btn:hover {
-            background: rgba(220, 38, 38, 1);
-        }
-    </style>
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
-
+<body class="bg-gray-100">
     <!-- Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
         <div class="text-center">
             <div class="loader mx-auto mb-4"></div>
-            <p class="text-gray-600">טוען מערכת...</p>
+            <p class="text-gray-600">جاري التحميل...</p>
         </div>
     </div>
 
-    <!-- Login Screen -->
-    <div id="loginScreen" class="hidden fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 z-40 flex items-center justify-center p-4">
+    <!-- Admin Login -->
+    <div id="adminLogin" class="hidden fixed inset-0 bg-gradient-to-br from-purple-50 to-purple-100 z-40 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-            <div class="text-center mb-8">
-                <div class="bg-blue-600 p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-                        <circle cx="7" cy="17" r="2"/>
-                        <path d="M9 17h6"/>
-                        <circle cx="17" cy="17" r="2"/>
+            <div class="text-center mb-6">
+                <div class="bg-purple-600 p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">מערכת ניהול מוסך</h1>
-                <p class="text-gray-600">התחבר לחשבון שלך</p>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">لوحة تحكم المشرف</h1>
+                <p class="text-gray-600">تسجيل دخول المشرف</p>
             </div>
             
             <div id="loginError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4"></div>
             
-            <form id="loginForm" class="space-y-4">
+            <form id="adminLoginForm" class="space-y-4">
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-2">אימייל</label>
-                    <input type="email" id="loginEmail" required 
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
+                    <label class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني</label>
+                    <input type="email" id="adminEmail" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-2">סיסמה</label>
-                    <input type="password" id="loginPassword" required 
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
+                    <label class="block text-gray-700 font-semibold mb-2">كلمة المرور</label>
+                    <input type="password" id="adminPassword" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none">
                 </div>
-                <button type="submit" id="loginBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
-                    התחבר
+                <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold">
+                    دخول المشرف
                 </button>
             </form>
-            
-            <div class="mt-6 text-center">
-                <button onclick="toggleRegisterMode()" class="text-blue-600 hover:underline">
-                    אין לך חשבון? הירשם כאן
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- Main App -->
-    <div id="app" class="container mx-auto px-4 py-8 hidden">
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
         <!-- Header -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <h1 class="text-3xl font-bold text-gray-800">מערכת ניהול מוסך</h1>
-                <div class="flex gap-3">
-                    <button onclick="showAddCarModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                        הוסף רכב
-                    </button>
-                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-                        יציאה
-                    </button>
+        <nav class="bg-purple-800 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold">لوحة تحكم المشرف</h1>
+                    <div class="flex items-center gap-4">
+                        <span id="adminName" class="text-sm"></span>
+                        <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                            تسجيل خروج
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Search -->
-            <div class="mt-6">
-                <input type="text" id="searchInput" placeholder="חיפוש לפי מספר רישוי או שם..." 
-                       onkeyup="filterCars()" 
-                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-            </div>
-            
-            <!-- Statistics -->
-            <div class="mt-6">
-                <span class="text-gray-600">סה"כ רכבים: </span>
-                <span id="carCount" class="font-bold text-blue-600">0</span>
-            </div>
-        </div>
+        </nav>
 
-        <!-- Cars Grid -->
-        <div id="carsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div class="container mx-auto px-4 py-8">
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">إجمالي المستخدمين</p>
+                            <p class="text-3xl font-bold text-blue-600" id="totalUsers">0</p>
+                        </div>
+                        <svg class="w-12 h-12 text-blue-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">المتصلون الآن</p>
+                            <p class="text-3xl font-bold text-green-600" id="activeUsers">0</p>
+                        </div>
+                        <svg class="w-12 h-12 text-green-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">تحذيرات أمنية</p>
+                            <p class="text-3xl font-bold text-red-600" id="suspiciousAttempts">0</p>
+                        </div>
+                        <svg class="w-12 h-12 text-red-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">إجمالي السيارات</p>
+                            <p class="text-3xl font-bold text-purple-600" id="totalCars">0</p>
+                        </div>
+                        <svg class="w-12 h-12 text-purple-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="bg-white rounded-2xl shadow-xl p-12 text-center hidden">
-            <svg class="mx-auto text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-                <circle cx="7" cy="17" r="2"/>
-                <path d="M9 17h6"/>
-                <circle cx="17" cy="17" r="2"/>
-            </svg>
-            <h3 class="text-2xl font-bold text-gray-600 mb-2">אין רכבים במערכת</h3>
-            <p class="text-gray-500">התחל על ידי הוספת רכב חדש</p>
+            <!-- Tabs -->
+            <div class="bg-white rounded-xl shadow-lg mb-8">
+                <div class="border-b">
+                    <nav class="flex">
+                        <button onclick="showTab('users')" class="tab-btn px-6 py-3 text-purple-600 border-b-2 border-purple-600">
+                            المستخدمون
+                        </button>
+                        <button onclick="showTab('sessions')" class="tab-btn px-6 py-3 text-gray-600 hover:text-purple-600">
+                            الجلسات النشطة
+                        </button>
+                        <button onclick="showTab('logs')" class="tab-btn px-6 py-3 text-gray-600 hover:text-purple-600">
+                            سجل النشاط
+                        </button>
+                        <button onclick="showTab('settings')" class="tab-btn px-6 py-3 text-gray-600 hover:text-purple-600">
+                            الإعدادات
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="usersTab" class="p-6">
+                    <div class="mb-4 flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800">قائمة المستخدمين</h2>
+                        <input type="text" placeholder="بحث..." class="px-4 py-2 border rounded-lg" onkeyup="searchUsers(this.value)">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-right">المستخدم</th>
+                                    <th class="px-4 py-3 text-center">تاريخ التسجيل</th>
+                                    <th class="px-4 py-3 text-center">السيارات</th>
+                                    <th class="px-4 py-3 text-center">آخر دخول</th>
+                                    <th class="px-4 py-3 text-center">الأجهزة</th>
+                                    <th class="px-4 py-3 text-center">الحالة</th>
+                                    <th class="px-4 py-3 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="divide-y divide-gray-200">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sessions Tab -->
+                <div id="sessionsTab" class="p-6 hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">الجلسات النشطة</h2>
+                    <div id="activeSessions" class="space-y-4">
+                        <!-- Sessions will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="logsTab" class="p-6 hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">سجل النشاط</h2>
+                    <div id="activityLogs" class="space-y-2">
+                        <!-- Logs will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settingsTab" class="p-6 hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">الإعدادات</h2>
+                    <div class="space-y-4">
+                        <div class="border rounded-lg p-4">
+                            <h3 class="font-semibold mb-2">حدود الأجهزة</h3>
+                            <label class="flex items-center justify-between">
+                                <span>الحد الأقصى للأجهزة لكل مستخدم</span>
+                                <input type="number" id="maxDevices" value="2" min="1" max="10" class="w-20 px-2 py-1 border rounded">
+                            </label>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <h3 class="font-semibold mb-2">الحظر التلقائي</h3>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="autoBlock" class="ml-2">
+                                <span>حظر تلقائي عند تجاوز حد الأجهزة</span>
+                            </label>
+                        </div>
+                        <button onclick="saveSettings()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+                            حفظ الإعدادات
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Add/Edit Car Modal -->
-    <div id="carModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-800">הוספת רכב חדש</h2>
-            
-            <!-- Image Upload -->
-            <div class="mb-6">
-                <label class="block text-gray-700 font-semibold mb-2">תמונת הרכב</label>
-                <input type="file" id="carImageInput" accept="image/*" class="hidden" onchange="handleImageSelect(event)">
-                <div id="imagePreview" class="mb-4"></div>
-                <button onclick="document.getElementById('carImageInput').click()" 
-                        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
-                    העלה תמונה
-                </button>
-            </div>
-            
-            <!-- Form Fields -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">מספר רישוי *</label>
-                    <input type="text" id="plateNumber" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">שם הבעלים *</label>
-                    <input type="text" id="ownerName" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">טלפון</label>
-                    <input type="text" id="phone" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">סוג רכב</label>
-                    <input type="text" id="carType" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">דגם</label>
-                    <input type="text" id="model" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">שנה</label>
-                    <input type="text" id="year" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none">
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex gap-3 justify-end">
-                <button onclick="closeCarModal()" class="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition">
-                    ביטול
-                </button>
-                <button onclick="saveCar()" id="saveBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                    שמור
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCdSRfJCoU6xwDych3l_3K_hBZBHOi9jVg",
-            authDomain: "garage-17263.firebaseapp.com",
-            projectId: "garage-17263",
-            storageBucket: "garage-17263.firebasestorage.app",
-            messagingSenderId: "332265903935",
-            appId: "1:332265903935:web:237c0787a161fd36a7a58a",
-            measurementId: "G-KLLCPECCDQ"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const firestore = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-
-        // Global Variables
-        let currentUser = null;
-        let cars = [];
-        let editingCarId = null;
-        let tempImageFile = null;
-        let tempImageUrl = null;
-        let isRegisterMode = false;
-
-        // Authentication State Observer
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                await loadCars();
-            } else {
-                currentUser = null;
-                document.getElementById('loginScreen').classList.remove('hidden');
-                document.getElementById('app').classList.add('hidden');
-            }
-            document.getElementById('loadingScreen').classList.add('hidden');
-        });
-
-        // Login Form Handler
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const loginBtn = document.getElementById('loginBtn');
-            
-            loginBtn.disabled = true;
-            loginBtn.textContent = isRegisterMode ? 'מתחבר...' : 'מתחבר...';
-            
-            try {
-                if (isRegisterMode) {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                    await firestore.collection('users').doc(auth.currentUser.uid).set({
-                        email: email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } else {
-                    await auth.signInWithEmailAndPassword(email, password);
-                }
-            } catch (error) {
-                showError(getErrorMessage(error.code));
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.textContent = isRegisterMode ? 'הירשם' : 'התחבר';
-            }
-        });
-
-        // Toggle Register/Login Mode
-        function toggleRegisterMode() {
-            isRegisterMode = !isRegisterMode;
-            const loginBtn = document.getElementById('loginBtn');
-            const toggleBtn = event.target;
-            
-            if (isRegisterMode) {
-                loginBtn.textContent = 'הירשם';
-                toggleBtn.textContent = 'יש לך חשבון? התחבר כאן';
-            } else {
-                loginBtn.textContent = 'התחבר';
-                toggleBtn.textContent = 'אין לך חשבון? הירשם כאן';
-            }
-        }
-
-        // Load Cars
-        async function loadCars() {
-            try {
-                const snapshot = await firestore.collection('cars')
-                    .where('userId', '==', currentUser.uid)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                
-                cars = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                renderCars();
-            } catch (error) {
-                console.error('Error loading cars:', error);
-                // If orderBy fails, try without it
-                const snapshot = await firestore.collection('cars')
-                    .where('userId', '==', currentUser.uid)
-                    .get();
-                
-                cars = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                renderCars();
-            }
-        }
-
-        // Render Cars
-        function renderCars() {
-            const grid = document.getElementById('carsGrid');
-            const emptyState = document.getElementById('emptyState');
-            const carCount = document.getElementById('carCount');
-            
-            carCount.textContent = cars.length;
-            
-            if (cars.length === 0) {
-                grid.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            
-            emptyState.classList.add('hidden');
-            
-            grid.innerHTML = cars.map(car => `
-                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition car-item" 
-                     data-plate="${car.plateNumber}" data-owner="${car.ownerName}">
-                    ${car.imageUrl ? `
-                        <img src="${car.imageUrl}" alt="${car.plateNumber}" 
-                             class="w-full h-48 object-cover rounded-t-xl">
-                    ` : `
-                        <div class="w-full h-48 bg-gray-200 rounded-t-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400">
-                                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-                                <circle cx="7" cy="17" r="2"/>
-                                <path d="M9 17h6"/>
-                                <circle cx="17" cy="17" r="2"/>
-                            </svg>
-                        </div>
-                    `}
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-xl font-bold text-gray-800">${car.plateNumber}</h3>
-                                <p class="text-gray-600">${car.ownerName}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="editCar('${car.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
-                                    ✏️
-                                </button>
-                                <button onclick="deleteCar('${car.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                        <div class="space-y-1 text-sm">
-                            ${car.phone ? `<p><span class="text-gray-600">טלפון:</span> ${car.phone}</p>` : ''}
-                            ${car.carType ? `<p><span class="text-gray-600">סוג:</span> ${car.carType}</p>` : ''}
-                            ${car.model ? `<p><span class="text-gray-600">דגם:</span> ${car.model}</p>` : ''}
-                            ${car.year ? `<p><span class="text-gray-600">שנה:</span> ${car.year}</p>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Filter Cars
-        function filterCars() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const carItems = document.querySelectorAll('.car-item');
-            let visibleCount = 0;
-            
-            carItems.forEach(item => {
-                const plate = item.dataset.plate.toLowerCase();
-                const owner = item.dataset.owner.toLowerCase();
-                
-                if (plate.includes(searchTerm) || owner.includes(searchTerm)) {
-                    item.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-            
-            document.getElementById('carCount').textContent = visibleCount;
-        }
-
-        // Show Add Car Modal
-        function showAddCarModal() {
-            editingCarId = null;
-            tempImageFile = null;
-            tempImageUrl = null;
-            
-            document.getElementById('modalTitle').textContent = 'הוספת רכב חדש';
-            document.getElementById('plateNumber').value = '';
-            document.getElementById('ownerName').value = '';
-            document.getElementById('phone').value = '';
-            document.getElementById('carType').value = '';
-            document.getElementById('model').value = '';
-            document.getElementById('year').value = '';
-            document.getElementById('imagePreview').innerHTML = '';
-            
-            document.getElementById('carModal').classList.remove('hidden');
-        }
-
-        // Edit Car
-        function editCar(carId) {
-            const car = cars.find(c => c.id === carId);
-            if (!car) return;
-            
-            editingCarId = carId;
-            tempImageUrl = car.imageUrl || null;
-            
-            document.getElementById('modalTitle').textContent = 'עריכת רכב';
-            document.getElementById('plateNumber').value = car.plateNumber || '';
-            document.getElementById('ownerName').value = car.ownerName || '';
-            document.getElementById('phone').value = car.phone || '';
-            document.getElementById('carType').value = car.carType || '';
-            document.getElementById('model').value = car.model || '';
-            document.getElementById('year').value = car.year || '';
-            
-            if (car.imageUrl) {
-                document.getElementById('imagePreview').innerHTML = `
-                    <div class="image-preview">
-                        <img src="${car.imageUrl}" class="w-full h-48 rounded-lg object-cover">
-                        <button onclick="removeImage()" class="delete-btn">×</button>
-                    </div>
-                `;
-            }
-            
-            document.getElementById('carModal').classList.remove('hidden');
-        }
-
-        // Handle Image Select
-        function handleImageSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                tempImageFile = file;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreview').innerHTML = `
-                        <div class="image-preview">
-                            <img src="${e.target.result}" class="w-full h-48 rounded-lg object-cover">
-                            <button onclick="removeImage()" class="delete-btn">×</button>
-                        </div>
-                    `;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Remove Image
-        function removeImage() {
-            tempImageFile = null;
-            tempImageUrl = null;
-            document.getElementById('imagePreview').innerHTML = '';
-            document.getElementById('carImageInput').value = '';
-        }
-
-        // Save Car
-        async function saveCar() {
-            const plateNumber = document.getElementById('plateNumber').value.trim();
-            const ownerName = document.getElementById('ownerName').value.trim();
-            
-            if (!plateNumber || !ownerName) {
-                alert('נא למלא מספר רישוי ושם בעלים');
-                return;
-            }
-            
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'שומר...';
-            
-            try {
-                let imageUrl = tempImageUrl;
-                
-                // Upload new image if selected
-                if (tempImageFile) {
-                    const imagePath = `cars/${currentUser.uid}/${Date.now()}_${tempImageFile.name}`;
-                    const uploadTask = await storage.ref(imagePath).put(tempImageFile);
-                    imageUrl = await uploadTask.ref.getDownloadURL();
-                }
-                
-                const carData = {
-                    plateNumber,
-                    ownerName,
-                    phone: document.getElementById('phone').value.trim(),
-                    carType: document.getElementById('carType').value.trim(),
-                    model: document.getElementById('model').value.trim(),
-                    year: document.getElementById('year').value.trim(),
-                    imageUrl: imageUrl || null,
-                    userId: currentUser.uid,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                if (editingCarId) {
-                    await firestore.collection('cars').doc(editingCarId).update(carData);
-                } else {
-                    carData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    await firestore.collection('cars').add(carData);
-                }
-                
-                closeCarModal();
-                await loadCars();
-                
-            } catch (error) {
-                console.error('Error saving car:', error);
-                alert('שגיאה בשמירת הרכב');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'שמור';
-            }
-        }
-
-        // Delete Car
-        async function deleteCar(carId) {
-            if (!confirm('האם אתה בטוח שברצונך למחוק רכב זה?')) return;
-            
-            try {
-                const car = cars.find(c => c.id === carId);
-                
-                // Delete image from storage if exists
-                if (car && car.imageUrl) {
-                    try {
-                        const imageRef = storage.refFromURL(car.imageUrl);
-                        await imageRef.delete();
-                    } catch (error) {
-                        console.error('Error deleting image:', error);
-                    }
-                }
-                
-                await firestore.collection('cars').doc(carId).delete();
-                await loadCars();
-                
-            } catch (error) {
-                console.error('Error deleting car:', error);
-                alert('שגיאה במחיקת הרכב');
-            }
-        }
-
-        // Close Car Modal
-        function closeCarModal() {
-            document.getElementById('carModal').classList.add('hidden');
-            editingCarId = null;
-            tempImageFile = null;
-            tempImageUrl = null;
-        }
-
-        // Logout
-        async function logout() {
-            if (confirm('האם אתה בטוח שברצונך לצאת?')) {
-                await auth.signOut();
-            }
-        }
-
-        // Show Error
-        function showError(message) {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
-        }
-
-        // Get Error Message
-        function getErrorMessage(code) {
-            const messages = {
-                'auth/user-not-found': 'המשתמש לא נמצא',
-                'auth/wrong-password': 'סיסמה שגויה',
-                'auth/email-already-in-use': 'האימייל כבר בשימוש',
-                'auth/weak-password': 'הסיסמה חלשה מדי (מינימום 6 תווים)',
-                'auth/invalid-email': 'כתובת אימייל לא תקינה',
-                'auth/too-many-requests': 'יותר מדי ניסיונות, נסה שוב מאוחר יותר'
-            };
-            return messages[code] || 'שגיאה בהתחברות';
-        }
-    </script>
-
+    <script src="../js/config.js"></script>
+    <script src="../js/admin.js"></script>
 </body>
 </html>
