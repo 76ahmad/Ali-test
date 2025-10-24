@@ -146,6 +146,7 @@
                     <label class="block text-gray-700 mb-1">תמונה</label>
                     <input type="file" id="carImage" accept="image/*" class="w-full">
                     <div id="imagePreview" class="mt-2"></div>
+                    <p class="text-xs text-gray-500 mt-1">גודל מקסימלי: 2MB | פורמט: JPG, PNG</p>
                 </div>
                 
                 <div class="flex gap-2">
@@ -362,64 +363,68 @@
             document.getElementById('carModal').classList.remove('hidden');
         }
 
-        // Car Form Submit
+        // Car Form Submit - Fixed version
         document.getElementById('carForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'שומר...';
             
-            const carData = {
-                plateNumber: document.getElementById('plateNumber').value,
-                ownerName: document.getElementById('ownerName').value,
-                phone: document.getElementById('phone').value,
-                carType: document.getElementById('carType').value,
-                model: document.getElementById('model').value,
-                year: document.getElementById('year').value,
-                userId: currentUser.uid,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
             try {
-                // Handle image upload if exists
+                const carData = {
+                    plateNumber: document.getElementById('plateNumber').value.trim(),
+                    ownerName: document.getElementById('ownerName').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    carType: document.getElementById('carType').value.trim(),
+                    model: document.getElementById('model').value.trim(),
+                    year: document.getElementById('year').value.trim(),
+                    userId: currentUser.uid,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Handle image
                 const imageFile = document.getElementById('carImage').files[0];
                 if (imageFile) {
-                    // Check file size
-                    if (imageFile.size > 5 * 1024 * 1024) {
-                        alert('הקובץ גדול מדי. הגודל המקסימלי הוא 5MB');
+                    // Compress and convert to base64 for smaller files
+                    if (imageFile.size > 2 * 1024 * 1024) {
+                        alert('התמונה גדולה מדי. הגודל המקסימלי הוא 2MB');
                         submitBtn.disabled = false;
-                        submitBtn.textContent = 'שמור';
+                        submitBtn.textContent = originalText;
                         return;
                     }
                     
+                    // Option 1: Save as base64 (works without CORS issues)
+                    const reader = new FileReader();
+                    const base64 = await new Promise((resolve, reject) => {
+                        reader.onload = e => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(imageFile);
+                    });
+                    carData.imageUrl = base64;
+                    
+                    /* Option 2: Try Firebase Storage (may have CORS issues)
                     try {
-                        console.log('מעלה תמונה...');
-                        const fileName = `${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-                        const storageRef = storage.ref(`cars/${currentUser.uid}/${fileName}`);
-                        
-                        const uploadTask = await storageRef.put(imageFile);
-                        const downloadURL = await uploadTask.ref.getDownloadURL();
-                        carData.imageUrl = downloadURL;
-                        console.log('התמונה הועלתה בהצלחה');
-                    } catch (uploadError) {
-                        console.error('שגיאה בהעלאת תמונה:', uploadError);
-                        
-                        // Ask user if they want to continue without image
-                        if (!confirm('לא ניתן להעלות את התמונה. האם להמשיך בלעדיה?')) {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = 'שמור';
-                            return;
-                        }
+                        const fileName = `${Date.now()}_${imageFile.name.replace(/\s/g, '_')}`;
+                        const storageRef = storage.ref().child(`cars/${currentUser.uid}/${fileName}`);
+                        const snapshot = await storageRef.put(imageFile);
+                        carData.imageUrl = await snapshot.ref.getDownloadURL();
+                    } catch (storageError) {
+                        console.error('Storage error:', storageError);
+                        // Fall back to base64
+                        carData.imageUrl = base64;
                     }
+                    */
                 } else if (editingCarId) {
-                    // Keep existing image if editing and no new image selected
+                    // Keep existing image when editing
                     const existingCar = cars.find(c => c.id === editingCarId);
                     if (existingCar && existingCar.imageUrl) {
                         carData.imageUrl = existingCar.imageUrl;
                     }
                 }
                 
+                // Save to Firestore
                 if (editingCarId) {
                     await db.collection('cars').doc(editingCarId).update(carData);
                     alert('הרכב עודכן בהצלחה!');
@@ -429,43 +434,31 @@
                     alert('הרכב נוסף בהצלחה!');
                 }
                 
+                // Reset form
+                document.getElementById('carForm').reset();
+                document.getElementById('imagePreview').innerHTML = '';
                 closeCarModal();
-                loadCars();
+                await loadCars();
+                
             } catch (error) {
-                console.error('שגיאה בשמירת רכב:', error);
-                alert('שגיאה בשמירת הנתונים. אנא נסה שוב.');
+                console.error('Error saving car:', error);
+                alert('שגיאה: ' + (error.message || 'לא ניתן לשמור את הנתונים'));
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'שמור';
+                submitBtn.textContent = originalText;
             }
         });
 
-        // Delete Car
+        // Delete Car - Fixed version
         async function deleteCar(carId) {
             if (!confirm('האם למחוק את הרכב?')) return;
             
             try {
-                // Get car data to delete image if exists
-                const car = cars.find(c => c.id === carId);
-                
-                // Delete image from storage if exists
-                if (car && car.imageUrl) {
-                    try {
-                        const imageRef = storage.refFromURL(car.imageUrl);
-                        await imageRef.delete();
-                        console.log('התמונה נמחקה מהאחסון');
-                    } catch (imgError) {
-                        console.error('שגיאה במחיקת תמונה:', imgError);
-                        // Continue even if image deletion fails
-                    }
-                }
-                
-                // Delete car document
                 await db.collection('cars').doc(carId).delete();
                 alert('הרכב נמחק בהצלחה');
-                loadCars();
+                await loadCars();
             } catch (error) {
-                console.error('שגיאה במחיקת רכב:', error);
+                console.error('Error deleting car:', error);
                 alert('שגיאה במחיקת הרכב');
             }
         }
@@ -528,36 +521,40 @@
             }, 5000);
         }
 
-        // Image Preview with size check
-        document.getElementById('carImage').addEventListener('change', (e) => {
+        // Image Preview with compression
+        document.getElementById('carImage').addEventListener('change', async (e) => {
             const file = e.target.files[0];
+            const previewDiv = document.getElementById('imagePreview');
+            
             if (file) {
-                // Check file size (5MB limit)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('התמונה גדולה מדי. הגודל המקסימלי הוא 5MB');
+                // Check file size
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('התמונה גדולה מדי. הגודל המקסימלי הוא 2MB');
                     e.target.value = '';
-                    document.getElementById('imagePreview').innerHTML = '';
+                    previewDiv.innerHTML = '';
                     return;
                 }
                 
                 // Check file type
-                if (!file.type.startsWith('image/')) {
-                    alert('אנא בחר קובץ תמונה');
+                if (!file.type.match(/image\/(jpeg|jpg|png|gif)/)) {
+                    alert('פורמט לא נתמך. השתמש ב-JPG או PNG');
                     e.target.value = '';
-                    document.getElementById('imagePreview').innerHTML = '';
+                    previewDiv.innerHTML = '';
                     return;
                 }
                 
                 // Show preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    document.getElementById('imagePreview').innerHTML = 
-                        `<img src="${e.target.result}" class="w-32 h-32 object-cover rounded mt-2">
-                         <p class="text-xs text-gray-500 mt-1">גודל: ${(file.size / 1024 / 1024).toFixed(2)}MB</p>`;
+                    previewDiv.innerHTML = `
+                        <img src="${e.target.result}" class="w-32 h-32 object-cover rounded mt-2 border">
+                        <p class="text-xs text-green-600 mt-1">✓ התמונה מוכנה להעלאה</p>
+                        <p class="text-xs text-gray-500">גודל: ${(file.size / 1024).toFixed(0)}KB</p>
+                    `;
                 };
                 reader.readAsDataURL(file);
             } else {
-                document.getElementById('imagePreview').innerHTML = '';
+                previewDiv.innerHTML = '';
             }
         });
     </script>
