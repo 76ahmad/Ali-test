@@ -388,7 +388,7 @@
                 const imageFile = document.getElementById('carImage').files[0];
                 if (imageFile) {
                     // Compress and convert to base64 for smaller files
-                   if (imageFile.size > 10 * 1024 * 1024) {
+                  if (imageFile.size > 10 * 1024 * 1024) {
     alert('התמונה גדולה מדי. הגודל המקסימלי הוא 10MB');
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
@@ -562,4 +562,5 @@
 
 </body>
 </html>
+
 
