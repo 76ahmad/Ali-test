@@ -3,24 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מערכת ניהול מוסך</title>
+  <title>Garage Manager</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase v9 Compatible Mode -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+  <!-- Image Compression -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
 
   <style>
     .loader {
       border: 3px solid #f3f3f3;
       border-top: 3px solid #3b82f6;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 24px;
+      height: 24px;
       animation: spin 1s linear infinite;
     }
     @keyframes spin {
@@ -31,121 +34,91 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- Loading -->
+  <!-- Loading Screen -->
   <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
     <div class="text-center">
       <div class="loader mx-auto mb-4"></div>
-      <p class="text-gray-600">טוען מערכת...</p>
+      <p class="text-gray-600">Loading Garage Manager...</p>
     </div>
   </div>
 
   <!-- Login Screen -->
   <div id="loginScreen" class="hidden fixed inset-0 bg-blue-50 z-40 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 max-w-md w-full">
-      <h1 class="text-2xl font-bold text-center mb-6">מערכת ניהול מוסך</h1>
-
-      <div id="errorMsg" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-      <div id="successMsg" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"></div>
+      <h1 class="text-2xl font-bold text-center mb-6">Garage Manager</h1>
 
       <form id="loginForm">
         <div class="mb-4">
-          <label class="block text-gray-700 mb-2">אימייל</label>
+          <label class="block text-gray-700 mb-2">Email</label>
           <input type="email" id="email" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
         </div>
         <div class="mb-6">
-          <label class="block text-gray-700 mb-2">סיסמה</label>
+          <label class="block text-gray-700 mb-2">Password</label>
           <input type="password" id="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
         </div>
-        <button type="submit" id="authBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">התחבר</button>
+        <button type="submit" id="authBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Login</button>
       </form>
-
-      <p class="text-center mt-4">
-        <a href="#" id="toggleAuth" class="text-blue-600 hover:underline">אין לך חשבון? הירשם</a>
-      </p>
     </div>
   </div>
 
   <!-- Main App -->
-  <div id="mainApp" class="hidden container mx-auto px-3 sm:px-4 py-8">
-    <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-      <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 sm:gap-0">
-        <h1 class="text-2xl font-bold text-center sm:text-left">מערכת ניהול מוסך</h1>
-        <button onclick="signOut()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto">יציאה</button>
-      </div>
+  <div id="mainApp" class="hidden container mx-auto px-4 py-6">
 
-      <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
-        <button onclick="openCarModal()" class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ הוסף רכב</button>
-        <button onclick="exportCSV()" class="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">ייצא נתונים</button>
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-3xl">🚗</span>
+        <h1 class="text-2xl font-bold text-blue-600">Garage Manager</h1>
       </div>
-
-      <input type="text" id="searchBox" placeholder="חיפוש..." onkeyup="searchCars()" class="w-full px-3 py-2 border rounded-lg">
+      <button onclick="signOut()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto">Logout</button>
     </div>
+
+    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
+      <button onclick="openCarModal()" class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Add Car</button>
+      <button onclick="exportCSV()" class="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export CSV</button>
+    </div>
+
+    <input type="text" id="searchBox" placeholder="Search..." onkeyup="searchCars()" class="w-full px-3 py-2 border rounded-lg mb-4">
 
     <div id="carsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-
     <div id="emptyState" class="text-center py-12 hidden">
-      <p class="text-gray-500 text-xl">אין רכבים במערכת</p>
-      <button onclick="openCarModal()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">הוסף רכב ראשון</button>
+      <p class="text-gray-500 text-xl">No cars found</p>
+      <button onclick="openCarModal()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Add First Car</button>
     </div>
   </div>
 
- <!-- Car Modal -->
-<div id="carModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-white rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto">
-    <h2 id="modalTitle" class="text-xl font-bold mb-4">הוסף רכב</h2>
+  <!-- Car Modal -->
+  <div id="carModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+      <button onclick="closeCarModal()" class="absolute top-2 right-3 text-gray-500 text-xl">×</button>
+      <h2 id="modalTitle" class="text-xl font-bold mb-4 text-center">Add Car</h2>
 
-    <form id="carForm">
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">מספר רישוי *</label>
-        <input type="text" id="plateNumber" required class="w-full px-3 py-2 border rounded">
-      </div>
-
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">שם הבעלים *</label>
-        <input type="text" id="ownerName" required class="w-full px-3 py-2 border rounded">
-      </div>
-
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">טלפון</label>
-        <input type="text" id="phone" class="w-full px-3 py-2 border rounded">
-      </div>
-
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">סוג רכב</label>
-        <input type="text" id="carType" class="w-full px-3 py-2 border rounded">
-      </div>
-
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">דגם</label>
-        <input type="text" id="model" class="w-full px-3 py-2 border rounded">
-      </div>
-
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">שנה</label>
-        <input type="text" id="year" class="w-full px-3 py-2 border rounded">
-      </div>
-
-      <div class="mb-3">
-        <label class="block text-gray-700 mb-1">תמונה</label>
-        <input type="file" id="carImage" accept="image/*" class="w-full">
-        <div id="imagePreview" class="mt-2"></div>
-        <p class="text-xs text-gray-500 mt-1">אין מגבלת גודל | פורמט: JPG, PNG</p>
-      </div>
-
-      <div class="flex flex-col sm:flex-row gap-2 mt-4">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full sm:w-auto">
-          שמור
-        </button>
-        <button type="button" onclick="closeCarModal()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 w-full sm:w-auto">
-          ביטול
-        </button>
-      </div>
-    </form>
+      <form id="carForm">
+        <div class="mb-3"><label class="block text-gray-700 mb-1">License Plate *</label><input type="text" id="plateNumber" required class="w-full px-3 py-2 border rounded"></div>
+        <div class="mb-3"><label class="block text-gray-700 mb-1">Owner Name *</label><input type="text" id="ownerName" required class="w-full px-3 py-2 border rounded"></div>
+        <div class="mb-3"><label class="block text-gray-700 mb-1">Phone</label><input type="text" id="phone" class="w-full px-3 py-2 border rounded"></div>
+        <div class="mb-3"><label class="block text-gray-700 mb-1">Car Type</label><input type="text" id="carType" class="w-full px-3 py-2 border rounded"></div>
+        <div class="mb-3"><label class="block text-gray-700 mb-1">Model</label><input type="text" id="model" class="w-full px-3 py-2 border rounded"></div>
+        <div class="mb-3"><label class="block text-gray-700 mb-1">Year</label><input type="text" id="year" class="w-full px-3 py-2 border rounded"></div>
+        <div class="mb-3">
+          <label class="block text-gray-700 mb-1">Image</label>
+          <input type="file" id="carImage" accept="image/*" class="w-full">
+          <div id="imagePreview" class="mt-2"></div>
+          <p class="text-xs text-gray-500 mt-1">No size limit | JPG, PNG</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 mt-4 items-center">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full sm:w-auto flex items-center justify-center gap-2">
+            <span id="saveText">Save</span>
+            <div id="uploadLoader" class="loader hidden"></div>
+          </button>
+          <button type="button" onclick="closeCarModal()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 w-full sm:w-auto">Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
   <script>
-    // Firebase Configuration (نفس إعداداتك)
+    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCdSRfJCoU6xwDych3l_3K_hBZBHOi9jVg",
       authDomain: "garage-17263.firebaseapp.com",
@@ -156,18 +129,13 @@
       measurementId: "G-KLLCPECCDQ"
     };
 
-    let app, db, auth, storage;
-    let currentUser = null;
-    let cars = [];
-    let editingCarId = null;
-    let isRegisterMode = false;
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
 
-    app = firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    auth = firebase.auth();
-    storage = firebase.storage();
+    let cars = [], currentUser = null, editingCarId = null;
 
-    // Auth observer
     auth.onAuthStateChanged(async (user) => {
       document.getElementById('loadingScreen').classList.add('hidden');
       if (user) {
@@ -176,37 +144,17 @@
         document.getElementById('mainApp').classList.remove('hidden');
         await loadCars();
       } else {
-        currentUser = null;
         document.getElementById('loginScreen').classList.remove('hidden');
         document.getElementById('mainApp').classList.add('hidden');
       }
     });
 
-    document.getElementById('toggleAuth').addEventListener('click', (e) => {
-      e.preventDefault();
-      isRegisterMode = !isRegisterMode;
-      const authBtn = document.getElementById('authBtn');
-      const toggleLink = document.getElementById('toggleAuth');
-      authBtn.textContent = isRegisterMode ? 'הירשם' : 'התחבר';
-      toggleLink.textContent = isRegisterMode ? 'יש לך חשבון? התחבר' : 'אין לך חשבון? הירשם';
-    });
-
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const btn = document.getElementById('authBtn');
-      btn.disabled = true; btn.textContent = 'מעבד...';
+      const email = email.value, password = document.getElementById('password').value;
       try {
-        if (isRegisterMode)
-          await auth.createUserWithEmailAndPassword(email, password);
-        else
-          await auth.signInWithEmailAndPassword(email, password);
-      } catch (err) {
-        alert('שגיאה: ' + err.message);
-      } finally {
-        btn.disabled = false; btn.textContent = isRegisterMode ? 'הירשם' : 'התחבר';
-      }
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) { alert(err.message); }
     });
 
     async function loadCars() {
@@ -223,26 +171,19 @@
       }
       empty.classList.add('hidden');
       grid.innerHTML = cars.map(car => `
-        <div class="bg-white rounded-lg shadow p-4 car-card" data-search="${car.plateNumber} ${car.ownerName}">
-          ${car.imageUrl ? `<img src="${car.imageUrl}" class="w-full h-40 object-cover rounded mb-3">` :
-          '<div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-400">אין תמונה</div>'}
+        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition p-4 car-card" data-search="${car.plateNumber} ${car.ownerName}">
+          ${car.imageUrl ? `<img src="${car.imageUrl}" class="w-full h-40 object-cover rounded mb-3">` : '<div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-400">No image</div>'}
           <h3 class="font-bold text-lg">${car.plateNumber}</h3>
           <p class="text-gray-600">${car.ownerName}</p>
-          ${car.phone ? `<p class="text-sm">📞 ${car.phone}</p>` : ''}
-          ${car.carType ? `<p class="text-sm">🚗 ${car.carType}</p>` : ''}
-          ${car.model ? `<p class="text-sm">📋 ${car.model}</p>` : ''}
-          ${car.year ? `<p class="text-sm">📅 ${car.year}</p>` : ''}
           <div class="mt-3 flex gap-2">
-            <button onclick="editCar('${car.id}')" class="text-blue-600 hover:underline">עריכה</button>
-            <button onclick="deleteCar('${car.id}')" class="text-red-600 hover:underline">מחיקה</button>
+            <button onclick="editCar('${car.id}')" class="text-blue-600 hover:underline">Edit</button>
+            <button onclick="deleteCar('${car.id}')" class="text-red-600 hover:underline">Delete</button>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
     function openCarModal() {
       editingCarId = null;
-      document.getElementById('modalTitle').textContent = 'הוסף רכב';
       document.getElementById('carForm').reset();
       document.getElementById('imagePreview').innerHTML = '';
       document.getElementById('carModal').classList.remove('hidden');
@@ -250,21 +191,22 @@
 
     function closeCarModal() {
       document.getElementById('carModal').classList.add('hidden');
-      editingCarId = null;
     }
 
-    async function uploadImageToFirebase(file) {
+    async function uploadCompressedImage(file) {
+      const compressed = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true });
       const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
       const storageRef = storage.ref().child(`cars/${currentUser.uid}/${fileName}`);
-      const snapshot = await storageRef.put(file);
+      const snapshot = await storageRef.put(compressed);
       return await snapshot.ref.getDownloadURL();
     }
 
     document.getElementById('carForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'שומר...';
+      const saveText = document.getElementById('saveText');
+      const loader = document.getElementById('uploadLoader');
+      saveText.textContent = "Uploading...";
+      loader.classList.remove('hidden');
       try {
         const carData = {
           plateNumber: plateNumber.value.trim(),
@@ -278,76 +220,36 @@
         };
 
         const imageFile = document.getElementById('carImage').files[0];
-        if (imageFile) {
-          carData.imageUrl = await uploadImageToFirebase(imageFile);
-        } else if (editingCarId) {
-          const existing = cars.find(c => c.id === editingCarId);
-          if (existing?.imageUrl) carData.imageUrl = existing.imageUrl;
-        }
+        if (imageFile) carData.imageUrl = await uploadCompressedImage(imageFile);
 
         if (editingCarId) {
           await db.collection('cars').doc(editingCarId).update(carData);
-          alert('הרכב עודכן בהצלחה!');
+          alert('Car updated successfully!');
         } else {
           carData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
           await db.collection('cars').add(carData);
-          alert('הרכב נוסף בהצלחה!');
+          alert('Car added successfully!');
         }
-
-        closeCarModal();
-        await loadCars();
-      } catch (err) {
-        alert('שגיאה: ' + err.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'שמור';
+        closeCarModal(); await loadCars();
+      } catch (err) { alert(err.message); }
+      finally {
+        loader.classList.add('hidden');
+        saveText.textContent = "Save";
       }
     });
 
-    async function deleteCar(carId) {
-      if (!confirm('האם למחוק את הרכב?')) return;
-      await db.collection('cars').doc(carId).delete();
-      alert('הרכב נמחק בהצלחה');
+    async function deleteCar(id) {
+      if (!confirm('Delete this car?')) return;
+      await db.collection('cars').doc(id).delete();
       await loadCars();
     }
 
     function searchCars() {
-      const searchTerm = searchBox.value.toLowerCase();
-      document.querySelectorAll('.car-card').forEach(c => {
-        const t = c.dataset.search.toLowerCase();
-        c.style.display = t.includes(searchTerm) ? 'block' : 'none';
-      });
+      const search = searchBox.value.toLowerCase();
+      document.querySelectorAll('.car-card').forEach(c => c.style.display = c.dataset.search.toLowerCase().includes(search) ? 'block' : 'none');
     }
 
-    function exportCSV() {
-      if (!cars.length) return alert('אין נתונים לייצוא');
-      let csv = 'מספר רישוי,שם בעלים,טלפון,סוג,דגם,שנה\n';
-      cars.forEach(c => csv += `${c.plateNumber},${c.ownerName},${c.phone||''},${c.carType||''},${c.model||''},${c.year||''}\n`);
-      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `cars_${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-    }
-
-    async function signOut() {
-      if (confirm('האם לצאת מהמערכת?')) await auth.signOut();
-    }
-
-    document.getElementById('carImage').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      const preview = document.getElementById('imagePreview');
-      if (!file) return preview.innerHTML = '';
-      const reader = new FileReader();
-      reader.onload = ev => {
-        preview.innerHTML = `
-          <img src="${ev.target.result}" class="w-32 h-32 object-cover rounded mt-2 border">
-          <p class="text-xs text-green-600 mt-1">✓ התמונה מוכנה להעלאה</p>
-        `;
-      };
-      reader.readAsDataURL(file);
-    });
+    async function signOut() { await auth.signOut(); }
   </script>
 </body>
 </html>
-
