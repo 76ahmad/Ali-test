@@ -366,6 +366,10 @@
         document.getElementById('carForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'שומר...';
+            
             const carData = {
                 plateNumber: document.getElementById('plateNumber').value,
                 ownerName: document.getElementById('ownerName').value,
@@ -381,23 +385,58 @@
                 // Handle image upload if exists
                 const imageFile = document.getElementById('carImage').files[0];
                 if (imageFile) {
-                    const storageRef = storage.ref(`cars/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
-                    const snapshot = await storageRef.put(imageFile);
-                    carData.imageUrl = await snapshot.ref.getDownloadURL();
+                    // Check file size
+                    if (imageFile.size > 5 * 1024 * 1024) {
+                        alert('הקובץ גדול מדי. הגודל המקסימלי הוא 5MB');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'שמור';
+                        return;
+                    }
+                    
+                    try {
+                        console.log('מעלה תמונה...');
+                        const fileName = `${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                        const storageRef = storage.ref(`cars/${currentUser.uid}/${fileName}`);
+                        
+                        const uploadTask = await storageRef.put(imageFile);
+                        const downloadURL = await uploadTask.ref.getDownloadURL();
+                        carData.imageUrl = downloadURL;
+                        console.log('התמונה הועלתה בהצלחה');
+                    } catch (uploadError) {
+                        console.error('שגיאה בהעלאת תמונה:', uploadError);
+                        
+                        // Ask user if they want to continue without image
+                        if (!confirm('לא ניתן להעלות את התמונה. האם להמשיך בלעדיה?')) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'שמור';
+                            return;
+                        }
+                    }
+                } else if (editingCarId) {
+                    // Keep existing image if editing and no new image selected
+                    const existingCar = cars.find(c => c.id === editingCarId);
+                    if (existingCar && existingCar.imageUrl) {
+                        carData.imageUrl = existingCar.imageUrl;
+                    }
                 }
                 
                 if (editingCarId) {
                     await db.collection('cars').doc(editingCarId).update(carData);
+                    alert('הרכב עודכן בהצלחה!');
                 } else {
                     carData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                     await db.collection('cars').add(carData);
+                    alert('הרכב נוסף בהצלחה!');
                 }
                 
                 closeCarModal();
                 loadCars();
             } catch (error) {
-                console.error('Error saving car:', error);
-                alert('שגיאה בשמירת הרכב');
+                console.error('שגיאה בשמירת רכב:', error);
+                alert('שגיאה בשמירת הנתונים. אנא נסה שוב.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'שמור';
             }
         });
 
@@ -406,10 +445,28 @@
             if (!confirm('האם למחוק את הרכב?')) return;
             
             try {
+                // Get car data to delete image if exists
+                const car = cars.find(c => c.id === carId);
+                
+                // Delete image from storage if exists
+                if (car && car.imageUrl) {
+                    try {
+                        const imageRef = storage.refFromURL(car.imageUrl);
+                        await imageRef.delete();
+                        console.log('התמונה נמחקה מהאחסון');
+                    } catch (imgError) {
+                        console.error('שגיאה במחיקת תמונה:', imgError);
+                        // Continue even if image deletion fails
+                    }
+                }
+                
+                // Delete car document
                 await db.collection('cars').doc(carId).delete();
+                alert('הרכב נמחק בהצלחה');
                 loadCars();
             } catch (error) {
-                console.error('Error deleting car:', error);
+                console.error('שגיאה במחיקת רכב:', error);
+                alert('שגיאה במחיקת הרכב');
             }
         }
 
@@ -426,6 +483,11 @@
 
         // Export CSV
         function exportCSV() {
+            if (cars.length === 0) {
+                alert('אין נתונים לייצוא');
+                return;
+            }
+            
             let csv = 'מספר רישוי,שם בעלים,טלפון,סוג,דגם,שנה\n';
             cars.forEach(car => {
                 csv += `${car.plateNumber},${car.ownerName},${car.phone || ''},${car.carType || ''},${car.model || ''},${car.year || ''}\n`;
@@ -466,16 +528,36 @@
             }, 5000);
         }
 
-        // Image Preview
+        // Image Preview with size check
         document.getElementById('carImage').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('התמונה גדולה מדי. הגודל המקסימלי הוא 5MB');
+                    e.target.value = '';
+                    document.getElementById('imagePreview').innerHTML = '';
+                    return;
+                }
+                
+                // Check file type
+                if (!file.type.startsWith('image/')) {
+                    alert('אנא בחר קובץ תמונה');
+                    e.target.value = '';
+                    document.getElementById('imagePreview').innerHTML = '';
+                    return;
+                }
+                
+                // Show preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     document.getElementById('imagePreview').innerHTML = 
-                        `<img src="${e.target.result}" class="w-32 h-32 object-cover rounded mt-2">`;
+                        `<img src="${e.target.result}" class="w-32 h-32 object-cover rounded mt-2">
+                         <p class="text-xs text-gray-500 mt-1">גודל: ${(file.size / 1024 / 1024).toFixed(2)}MB</p>`;
                 };
                 reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imagePreview').innerHTML = '';
             }
         });
     </script>
