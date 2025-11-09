@@ -27,18 +27,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .status-waiting { background: #fef3c7; color: #92400e; }
-        .status-working { background: #dbeafe; color: #1e40af; }
-        .status-done { background: #d1fae5; color: #065f46; }
     </style>
 
 </head>
@@ -192,15 +180,6 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">סטטוס</label>
-                    <select id="status" class="w-full px-3 py-2 border rounded">
-                        <option value="waiting">ממתין</option>
-                        <option value="working">בעבודה</option>
-                        <option value="done">הושלם</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3">
                     <label class="block text-gray-700 mb-1">תיאור העבודה</label>
                     <textarea id="workDescription" rows="3" class="w-full px-3 py-2 border rounded" placeholder="מה נעשה ברכב? (אופציונלי)"></textarea>
                 </div>
@@ -210,25 +189,9 @@
                     <textarea id="parts" rows="2" class="w-full px-3 py-2 border rounded" placeholder="רשימת חלקים (אופציונלי)"></textarea>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="mb-3">
-                        <label class="block text-gray-700 mb-1">עלות חלקים (₪)</label>
-                        <input type="number" id="partsCost" class="w-full px-3 py-2 border rounded" placeholder="0">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="block text-gray-700 mb-1">עלות עבודה (₪)</label>
-                        <input type="number" id="laborCost" class="w-full px-3 py-2 border rounded" placeholder="0">
-                    </div>
-                </div>
-                
                 <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">עלות נוספת (₪)</label>
-                    <input type="number" id="otherCost" class="w-full px-3 py-2 border rounded" placeholder="0">
-                </div>
-                
-                <div class="mb-3">
-                    <label class="block text-gray-700 mb-1 font-bold">עלות כוללת: <span id="totalCostDisplay">0</span> ₪</label>
+                    <label class="block text-gray-700 mb-1">עלות (₪)</label>
+                    <input type="number" id="totalCost" class="w-full px-3 py-2 border rounded" placeholder="0">
                 </div>
                 
                 <div class="mb-3">
@@ -256,24 +219,26 @@
     </div>
 
     <!-- Car Details Modal -->
-    <div id="carDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-lg p-6 max-w-4xl w-full my-8">
-            <div class="flex justify-between items-center mb-4">
+    <div id="carDetailsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
                 <h2 class="text-2xl font-bold" id="detailsPlateNumber"></h2>
-                <button onclick="closeCarDetailsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                <button onclick="closeCarDetailsModal()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
             </div>
             
-            <div id="carDetailsContent"></div>
-            
-            <div class="mt-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">היסטוריית טיפולים</h3>
-                    <button onclick="openMaintenanceModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                        + הוסף טיפול
-                    </button>
-                </div>
+            <div class="p-6">
+                <div id="carDetailsContent"></div>
                 
-                <div id="maintenanceHistory" class="space-y-4"></div>
+                <div class="mt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">היסטוריית טיפולים</h3>
+                        <button onclick="openMaintenanceModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                            + הוסף טיפול
+                        </button>
+                    </div>
+                    
+                    <div id="maintenanceHistory" class="space-y-4"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -548,38 +513,29 @@
                 }
                 
                 historyDiv.innerHTML = maintenanceList.map(m => {
-                    const totalCost = (m.partsCost || 0) + (m.laborCost || 0) + (m.otherCost || 0);
-                    const statusClass = m.status === 'waiting' ? 'status-waiting' : 
-                                      m.status === 'working' ? 'status-working' : 'status-done';
-                    const statusText = m.status === 'waiting' ? 'ממתין' : 
-                                     m.status === 'working' ? 'בעבודה' : 'הושלם';
-                    
                     return `
                         <div class="border rounded-lg p-4 bg-gray-50">
                             <div class="flex justify-between items-start mb-2">
-                                <span class="status-badge ${statusClass}">${statusText}</span>
+                                <div class="flex-1">
+                                    ${m.entryDate || m.exitDate ? `
+                                        <div class="text-sm mb-2">
+                                            ${m.entryDate ? `<span>📅 כניסה: ${m.entryDate}</span>` : ''}
+                                            ${m.exitDate ? `<span class="mr-4">📤 יציאה: ${m.exitDate}</span>` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
                                 <div class="flex gap-2">
                                     <button onclick="editMaintenance('${m.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
                                     <button onclick="deleteMaintenance('${m.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
                                 </div>
                             </div>
                             
-                            ${m.entryDate || m.exitDate ? `
-                                <div class="text-sm mb-2">
-                                    ${m.entryDate ? `<span>📅 כניסה: ${m.entryDate}</span>` : ''}
-                                    ${m.exitDate ? `<span class="mr-4">📤 יציאה: ${m.exitDate}</span>` : ''}
-                                </div>
-                            ` : ''}
-                            
                             ${m.workDescription ? `<p class="mb-2"><strong>עבודה:</strong> ${m.workDescription}</p>` : ''}
                             ${m.parts ? `<p class="mb-2"><strong>חלקים:</strong> ${m.parts}</p>` : ''}
                             
-                            ${totalCost > 0 ? `
-                                <div class="text-sm mb-2">
-                                    <strong>עלות כוללת: ${totalCost.toFixed(2)} ₪</strong>
-                                    ${m.partsCost ? ` (חלקים: ${m.partsCost.toFixed(2)} ₪)` : ''}
-                                    ${m.laborCost ? ` (עבודה: ${m.laborCost.toFixed(2)} ₪)` : ''}
-                                    ${m.otherCost ? ` (אחר: ${m.otherCost.toFixed(2)} ₪)` : ''}
+                            ${m.totalCost > 0 ? `
+                                <div class="text-lg font-bold text-green-700 mb-2">
+                                    💰 ${m.totalCost.toFixed(2)} ₪
                                 </div>
                             ` : ''}
                             
@@ -763,12 +719,9 @@
                 
                 document.getElementById('entryDate').value = m.entryDate || '';
                 document.getElementById('exitDate').value = m.exitDate || '';
-                document.getElementById('status').value = m.status || 'waiting';
                 document.getElementById('workDescription').value = m.workDescription || '';
                 document.getElementById('parts').value = m.parts || '';
-                document.getElementById('partsCost').value = m.partsCost || '';
-                document.getElementById('laborCost').value = m.laborCost || '';
-                document.getElementById('otherCost').value = m.otherCost || '';
+                document.getElementById('totalCost').value = m.totalCost || '';
                 document.getElementById('notes').value = m.notes || '';
                 
                 maintenanceImages = m.images || [];
@@ -783,7 +736,6 @@
                         `).join('');
                 }
                 
-                calculateTotalCost();
                 document.getElementById('maintenanceModal').classList.remove('hidden');
                 
             } catch (error) {
@@ -832,12 +784,9 @@
                     userId: currentUser.uid,
                     entryDate: document.getElementById('entryDate').value,
                     exitDate: document.getElementById('exitDate').value,
-                    status: document.getElementById('status').value,
                     workDescription: document.getElementById('workDescription').value,
                     parts: document.getElementById('parts').value,
-                    partsCost: parseFloat(document.getElementById('partsCost').value) || 0,
-                    laborCost: parseFloat(document.getElementById('laborCost').value) || 0,
-                    otherCost: parseFloat(document.getElementById('otherCost').value) || 0,
+                    totalCost: parseFloat(document.getElementById('totalCost').value) || 0,
                     notes: document.getElementById('notes').value,
                     images: maintenanceImages,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
