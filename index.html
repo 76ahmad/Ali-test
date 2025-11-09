@@ -94,8 +94,17 @@
                 <button onclick="openCarModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     + הוסף רכב
                 </button>
+                <button onclick="openDashboard()" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-2">
+                    📊 לוח בקרה
+                </button>
                 <button onclick="openCalendarModal()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2">
                     📅 יומן פגישות
+                </button>
+                <button onclick="openSettings()" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 flex items-center gap-2">
+                    ⚙️ הגדרות
+                </button>
+                <button onclick="openBackupModal()" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 flex items-center gap-2">
+                    💾 גיבוי
                 </button>
                 <button onclick="exportCSV()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                     ייצא נתונים
@@ -233,6 +242,17 @@
                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                                placeholder='150 כ"ס / 2000 סמ"ק'>
                     </div>
+                    
+                    <!-- סטטוס רכב -->
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-bold mb-2">סטטוס רכב</label>
+                        <select id="carStatus" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="waiting">ממתין לטיפול</option>
+                            <option value="in_progress">בטיפול</option>
+                            <option value="ready">מוכן לאיסוף</option>
+                            <option value="completed">הושלם</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="flex gap-3 mt-6">
@@ -249,47 +269,70 @@
 
     <!-- Maintenance Modal -->
     <div id="maintenanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-lg p-6 max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white pb-2 mb-4 border-b">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold">הוסף טיפול</h2>
-                    <button type="button" onclick="closeMaintenanceModal()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
-                </div>
-            </div>
+        <div class="bg-white rounded-lg p-8 max-w-xl w-full my-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">הוספת טיפול</h2>
             
-            <form id="maintenanceForm">
-                <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">תיאור העבודה</label>
-                    <textarea id="workDescription" rows="3" class="w-full px-3 py-2 border rounded" placeholder="מה נעשה ברכב? (אופציונלי)"></textarea>
+            <form id="maintenanceForm" class="space-y-4">
+                <!-- תאריך -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-right">תאריך *</label>
+                    <input type="date" id="maintenanceDate" 
+                           class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500 text-right"
+                           value="">
                 </div>
                 
-                <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">חלקי חילוף</label>
-                    <textarea id="parts" rows="2" class="w-full px-3 py-2 border rounded" placeholder="רשימת חלקים (אופציונלי)"></textarea>
+                <!-- קילומטראז' -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-right">קילומטראז' *</label>
+                    <input type="number" id="kilometers" 
+                           class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500 text-right"
+                           placeholder="מספר הקילומטרים">
                 </div>
                 
-                <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">עלות (₪)</label>
-                    <input type="number" id="totalCost" class="w-full px-3 py-2 border rounded" placeholder="0">
+                <!-- שם החלק -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-right">שם החלק *</label>
+                    <input type="text" id="partName" 
+                           class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500 text-right"
+                           placeholder="">
                 </div>
                 
-                <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">הערות</label>
-                    <textarea id="notes" rows="2" class="w-full px-3 py-2 border rounded" placeholder="הערות נוספות (אופציונלי)"></textarea>
+                <!-- תיאור העבודה -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-right">תיאור העבודה</label>
+                    <textarea id="workDescription" rows="4" 
+                              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500 text-right resize-none"
+                              placeholder=""></textarea>
                 </div>
                 
-                <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">תמונות</label>
-                    <input type="file" id="maintenanceImages" accept="image/*" multiple class="w-full">
-                    <div id="maintenanceImagesPreview" class="mt-2 grid grid-cols-3 gap-2"></div>
-                    <p class="text-xs text-gray-500 mt-1">ניתן לבחור מספר תמונות</p>
+                <!-- עלות (₪) -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-right">עלות (₪) *</label>
+                    <input type="number" id="totalCost" step="0.01"
+                           class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500 text-right"
+                           placeholder="">
                 </div>
                 
-                <div class="flex gap-2 mt-4">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        שמור טיפול
+                <!-- תמונות התקלה -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-right">תמונות התקלה</label>
+                    <div class="flex items-center justify-end">
+                        <label class="cursor-pointer bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 flex items-center gap-2">
+                            <span class="text-gray-600">העלה תמונות</span>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <input type="file" id="maintenanceImages" accept="image/*" multiple class="hidden">
+                        </label>
+                    </div>
+                    <div id="maintenanceImagesPreview" class="mt-3 grid grid-cols-3 gap-2"></div>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-bold">
+                        הוסף טיפול
                     </button>
-                    <button type="button" onclick="closeMaintenanceModal()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+                    <button type="button" onclick="closeMaintenanceModal()" class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-bold">
                         ביטול
                     </button>
                 </div>
@@ -322,6 +365,183 @@
                     </div>
                     
                     <div id="maintenanceHistory" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Modal -->
+    <div id="dashboardModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-3xl font-bold">📊 לוח בקרה - ניהול רכבים</h2>
+                    <button onclick="closeDashboard()" class="text-white hover:text-gray-200 text-3xl leading-none">&times;</button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Statistics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded">
+                        <div class="text-3xl font-bold text-yellow-700" id="waitingCount">0</div>
+                        <div class="text-sm text-yellow-600">ממתין לטיפול</div>
+                    </div>
+                    <div class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded">
+                        <div class="text-3xl font-bold text-blue-700" id="inProgressCount">0</div>
+                        <div class="text-sm text-blue-600">בטיפול</div>
+                    </div>
+                    <div class="bg-green-100 border-l-4 border-green-500 p-4 rounded">
+                        <div class="text-3xl font-bold text-green-700" id="readyCount">0</div>
+                        <div class="text-sm text-green-600">מוכן לאיסוף</div>
+                    </div>
+                    <div class="bg-gray-100 border-l-4 border-gray-500 p-4 rounded">
+                        <div class="text-3xl font-bold text-gray-700" id="completedCount">0</div>
+                        <div class="text-sm text-gray-600">הושלם</div>
+                    </div>
+                </div>
+                
+                <!-- Kanban Board -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- ממתין לטיפול -->
+                    <div class="bg-yellow-50 rounded-lg p-4">
+                        <h3 class="font-bold text-lg mb-3 text-yellow-700 flex items-center gap-2">
+                            ⏳ ממתין לטיפול
+                        </h3>
+                        <div id="waitingColumn" class="space-y-2 min-h-[200px]"></div>
+                    </div>
+                    
+                    <!-- בטיפול -->
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h3 class="font-bold text-lg mb-3 text-blue-700 flex items-center gap-2">
+                            🔧 בטיפול
+                        </h3>
+                        <div id="inProgressColumn" class="space-y-2 min-h-[200px]"></div>
+                    </div>
+                    
+                    <!-- מוכן לאיסוף -->
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <h3 class="font-bold text-lg mb-3 text-green-700 flex items-center gap-2">
+                            ✅ מוכן לאיסוף
+                        </h3>
+                        <div id="readyColumn" class="space-y-2 min-h-[200px]"></div>
+                    </div>
+                    
+                    <!-- הושלם -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="font-bold text-lg mb-3 text-gray-700 flex items-center gap-2">
+                            🏁 הושלם
+                        </h3>
+                        <div id="completedColumn" class="space-y-2 min-h-[200px]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full">
+            <div class="bg-orange-600 text-white p-6 rounded-t-lg">
+                <h2 class="text-2xl font-bold">⚙️ הגדרות</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-bold mb-2">טלפון חנות חלפים</label>
+                    <input type="text" id="sparePartsPhone" 
+                           class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                           placeholder="050-1234567">
+                    <p class="text-xs text-gray-500 mt-1">מספר זה ישמש לשליחת הזמנות חלקים בוואטסאפ</p>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="saveSettings()" class="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 font-bold">
+                        שמור
+                    </button>
+                    <button onclick="closeSettings()" class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-bold">
+                        ביטול
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Modal -->
+    <div id="backupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full">
+            <div class="bg-teal-600 text-white p-6 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">💾 גיבוי ושחזור</h2>
+                    <button onclick="closeBackupModal()" class="text-white hover:text-gray-200 text-3xl leading-none">&times;</button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Backup Section -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">📤 יצירת גיבוי</h3>
+                    <p class="text-gray-600 mb-4">שמור את כל הנתונים שלך (רכבים, טיפולים, פגישות) לקובץ JSON</p>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="createBackup()" class="flex-1 bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 font-bold flex items-center justify-center gap-2">
+                            <span>💾</span>
+                            <span>יצירת גיבוי מלא</span>
+                        </button>
+                        <button onclick="createBackupWithImages()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-bold flex items-center justify-center gap-2">
+                            <span>📸</span>
+                            <span>גיבוי עם תמונות</span>
+                        </button>
+                    </div>
+                    
+                    <div id="backupProgress" class="hidden mt-4">
+                        <div class="bg-gray-200 rounded-full h-4 overflow-hidden">
+                            <div id="backupProgressBar" class="bg-teal-600 h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="backupProgressText" class="text-center text-sm text-gray-600 mt-2">מכין גיבוי...</p>
+                    </div>
+                </div>
+                
+                <hr class="my-6">
+                
+                <!-- Restore Section -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">📥 שחזור מגיבוי</h3>
+                    <p class="text-gray-600 mb-4">טען קובץ גיבוי קודם לשחזור הנתונים</p>
+                    
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <input type="file" id="restoreFile" accept=".json" class="hidden" onchange="handleRestoreFile(event)">
+                        <label for="restoreFile" class="cursor-pointer">
+                            <div class="text-4xl mb-2">📁</div>
+                            <div class="text-blue-600 font-bold mb-1">בחר קובץ גיבוי</div>
+                            <div class="text-gray-500 text-sm">או גרור קובץ JSON לכאן</div>
+                        </label>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mt-4">
+                        <div class="flex items-start gap-2">
+                            <span class="text-yellow-600">⚠️</span>
+                            <div class="text-sm text-yellow-800">
+                                <strong>אזהרה:</strong> שחזור מגיבוי ימחק את כל הנתונים הנוכחיים ויחליף אותם בנתונים מהגיבוי!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-6">
+                
+                <!-- Last Backup Info -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-600">גיבוי אחרון</div>
+                            <div id="lastBackupDate" class="font-bold text-gray-800">טרם בוצע גיבוי</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-600">סה״כ נתונים</div>
+                            <div id="totalDataCount" class="font-bold text-gray-800">-</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -771,12 +991,29 @@
             
             document.getElementById('carDetailsContent').innerHTML = `
                 ${phoneButtons}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                
+                <!-- Car Image with Change Button -->
+                <div class="mb-6">
                     ${car.imageUrl ? `
-                        <div class="col-span-2">
-                            <img src="${car.imageUrl}" class="w-full max-h-64 object-contain rounded">
+                        <div class="relative">
+                            <img src="${car.imageUrl}" class="w-full max-h-64 object-contain rounded border">
+                            <button onclick="changeCarImage('${carId}')" 
+                                    class="absolute top-2 left-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 shadow-lg flex items-center gap-2">
+                                📷 שנה תמונה
+                            </button>
                         </div>
-                    ` : ''}
+                    ` : `
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                            <p class="text-gray-500 mb-4">אין תמונה</p>
+                            <button onclick="changeCarImage('${carId}')" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                📷 הוסף תמונה
+                            </button>
+                        </div>
+                    `}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     ${car.ownerName ? `<div><span class="font-bold">שם הבעלים:</span> ${car.ownerName}</div>` : ''}
                     ${car.phone ? `<div><span class="font-bold">טלפון:</span> ${car.phone}</div>` : ''}
                     ${car.carType ? `<div><span class="font-bold">סוג רכב:</span> ${car.carType}</div>` : ''}
@@ -798,6 +1035,9 @@
         // Load Maintenance History
         async function loadMaintenanceHistory(carId) {
             try {
+                // Get car data first
+                const car = cars.find(c => c.id === carId);
+                
                 const snapshot = await db.collection('maintenance')
                     .where('carId', '==', carId)
                     .get();
@@ -824,27 +1064,27 @@
                 historyDiv.innerHTML = maintenanceList.map(m => {
                     return `
                         <div class="border rounded-lg p-4 bg-gray-50">
-                            <div class="flex justify-between items-start mb-2">
+                            <div class="flex justify-between items-start mb-3">
                                 <div class="flex-1">
-                                    <span class="text-xs text-gray-500">${m.createdAt ? new Date(m.createdAt.toMillis()).toLocaleDateString('he-IL') : ''}</span>
+                                    ${m.date ? `<div class="font-bold text-lg mb-1">📅 ${new Date(m.date).toLocaleDateString('he-IL')}</div>` : ''}
+                                    ${m.kilometers ? `<div class="text-sm text-gray-600">🚗 ${m.kilometers} ק״מ</div>` : ''}
                                 </div>
                                 <div class="flex gap-2">
+                                    ${m.partName && car ? `<button onclick="orderSparePart('${m.partName.replace(/'/g, "\\'")}', '${car.carType || ''}', '${car.model || ''}', '${car.year || ''}')" class="text-green-600 hover:underline text-sm">📦 הזמן חלק</button>` : ''}
                                     <button onclick="printMaintenance('${m.id}')" class="text-purple-600 hover:underline text-sm">🖨️ הדפס</button>
                                     <button onclick="editMaintenance('${m.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
                                     <button onclick="deleteMaintenance('${m.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
                                 </div>
                             </div>
                             
-                            ${m.workDescription ? `<p class="mb-2"><strong>עבודה:</strong> ${m.workDescription}</p>` : ''}
-                            ${m.parts ? `<p class="mb-2"><strong>חלקים:</strong> ${m.parts}</p>` : ''}
+                            ${m.partName ? `<p class="mb-2"><strong>🔧 חלק:</strong> ${m.partName}</p>` : ''}
+                            ${m.workDescription ? `<p class="mb-2"><strong>תיאור:</strong> ${m.workDescription}</p>` : ''}
                             
                             ${m.totalCost > 0 ? `
                                 <div class="text-lg font-bold text-green-700 mb-2">
                                     💰 ${m.totalCost.toFixed(2)} ₪
                                 </div>
                             ` : ''}
-                            
-                            ${m.notes ? `<p class="text-sm text-gray-600 mb-2"><strong>הערות:</strong> ${m.notes}</p>` : ''}
                             
                             ${m.images && m.images.length > 0 ? `
                                 <div class="grid grid-cols-3 gap-2 mt-2">
@@ -898,6 +1138,7 @@
             document.getElementById('immobilizerCode').value = car.immobilizerCode || '';
             document.getElementById('engineType').value = car.engineType || '';
             document.getElementById('enginePower').value = car.enginePower || '';
+            document.getElementById('carStatus').value = car.carStatus || 'waiting';
             
             if (car.imageUrl) {
                 document.getElementById('imagePreview').innerHTML = 
@@ -928,6 +1169,7 @@
                     immobilizerCode: document.getElementById('immobilizerCode').value.trim(),
                     engineType: document.getElementById('engineType').value.trim(),
                     enginePower: document.getElementById('enginePower').value.trim(),
+                    carStatus: document.getElementById('carStatus').value || 'waiting',
                     userId: currentUser.uid,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -1002,6 +1244,66 @@
             }
         }
 
+        // Change Car Image
+        function changeCarImage(carId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Check file size (max 30MB)
+                if (file.size > 30 * 1024 * 1024) {
+                    alert('הקובץ גדול מדי. גודל מקסימלי: 30MB');
+                    return;
+                }
+                
+                try {
+                    // Show loading
+                    const loadingMsg = document.createElement('div');
+                    loadingMsg.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    loadingMsg.textContent = '📷 מעלה תמונה...';
+                    document.body.appendChild(loadingMsg);
+                    
+                    // Convert to base64
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        try {
+                            const imageUrl = event.target.result;
+                            
+                            // Update car in database
+                            await db.collection('cars').doc(carId).update({
+                                imageUrl: imageUrl,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            
+                            // Remove loading message
+                            document.body.removeChild(loadingMsg);
+                            
+                            // Show success
+                            alert('✅ התמונה עודכנה בהצלחה!');
+                            
+                            // Reload car details
+                            await loadCars();
+                            openCarDetails(carId);
+                            
+                        } catch (error) {
+                            document.body.removeChild(loadingMsg);
+                            console.error('Error updating image:', error);
+                            alert('שגיאה בעדכון התמונה');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                    
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('שגיאה בעיבוד התמונה');
+                }
+            };
+            input.click();
+        }
+
         // Open Maintenance Modal
         function openMaintenanceModal() {
             if (!currentCarId) {
@@ -1013,6 +1315,11 @@
             maintenanceImages = [];
             document.getElementById('maintenanceForm').reset();
             document.getElementById('maintenanceImagesPreview').innerHTML = '';
+            
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('maintenanceDate').value = today;
+            
             document.getElementById('maintenanceModal').classList.remove('hidden');
         }
 
@@ -1032,10 +1339,11 @@
                 const m = doc.data();
                 editingMaintenanceId = maintenanceId;
                 
+                document.getElementById('maintenanceDate').value = m.date || '';
+                document.getElementById('kilometers').value = m.kilometers || '';
+                document.getElementById('partName').value = m.partName || '';
                 document.getElementById('workDescription').value = m.workDescription || '';
-                document.getElementById('parts').value = m.parts || '';
                 document.getElementById('totalCost').value = m.totalCost || '';
-                document.getElementById('notes').value = m.notes || '';
                 
                 maintenanceImages = m.images || [];
                 
@@ -1269,10 +1577,11 @@
                 const maintenanceData = {
                     carId: currentCarId,
                     userId: currentUser.uid,
+                    date: document.getElementById('maintenanceDate').value,
+                    kilometers: document.getElementById('kilometers').value,
+                    partName: document.getElementById('partName').value,
                     workDescription: document.getElementById('workDescription').value,
-                    parts: document.getElementById('parts').value,
                     totalCost: parseFloat(document.getElementById('totalCost').value) || 0,
-                    notes: document.getElementById('notes').value,
                     images: maintenanceImages,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -1847,6 +2156,583 @@
         }
 
         // ==========================================
+        // DASHBOARD FUNCTIONS
+        // ==========================================
+
+        // Open Dashboard
+        function openDashboard() {
+            document.getElementById('dashboardModal').classList.remove('hidden');
+            renderDashboard();
+        }
+
+        // Close Dashboard
+        function closeDashboard() {
+            document.getElementById('dashboardModal').classList.add('hidden');
+        }
+
+        // Render Dashboard
+        function renderDashboard() {
+            // Count cars by status
+            const waiting = cars.filter(c => c.carStatus === 'waiting' || !c.carStatus);
+            const inProgress = cars.filter(c => c.carStatus === 'in_progress');
+            const ready = cars.filter(c => c.carStatus === 'ready');
+            const completed = cars.filter(c => c.carStatus === 'completed');
+            
+            // Update counters
+            document.getElementById('waitingCount').textContent = waiting.length;
+            document.getElementById('inProgressCount').textContent = inProgress.length;
+            document.getElementById('readyCount').textContent = ready.length;
+            document.getElementById('completedCount').textContent = completed.length;
+            
+            // Render columns
+            renderDashboardColumn('waitingColumn', waiting, 'waiting');
+            renderDashboardColumn('inProgressColumn', inProgress, 'in_progress');
+            renderDashboardColumn('readyColumn', ready, 'ready');
+            renderDashboardColumn('completedColumn', completed, 'completed');
+        }
+
+        // Render Dashboard Column
+        function renderDashboardColumn(columnId, carsList, status) {
+            const column = document.getElementById(columnId);
+            
+            if (carsList.length === 0) {
+                column.innerHTML = '<p class="text-gray-400 text-center py-4 text-sm">אין רכבים</p>';
+                return;
+            }
+            
+            column.innerHTML = carsList.map(car => `
+                <div class="bg-white rounded-lg p-3 shadow hover:shadow-md transition cursor-pointer border-r-4 ${getStatusColor(status)}" 
+                     onclick="openCarDetailsModal('${car.id}')">
+                    <div class="font-bold text-sm mb-1">${car.plateNumber}</div>
+                    <div class="text-xs text-gray-600 mb-2">${car.ownerName || ''}</div>
+                    ${car.carType || car.model ? `<div class="text-xs text-gray-500">${car.carType || ''} ${car.model || ''}</div>` : ''}
+                    
+                    <!-- Status Buttons -->
+                    <div class="mt-2 flex gap-1 flex-wrap" onclick="event.stopPropagation()">
+                        ${status !== 'waiting' ? `<button onclick="changeCarStatus('${car.id}', 'waiting')" class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-200" title="העבר לממתין">⏳</button>` : ''}
+                        ${status !== 'in_progress' ? `<button onclick="changeCarStatus('${car.id}', 'in_progress')" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200" title="העבר לטיפול">🔧</button>` : ''}
+                        ${status !== 'ready' ? `<button onclick="changeCarStatus('${car.id}', 'ready')" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200" title="סמן כמוכן">✅</button>` : ''}
+                        ${status !== 'completed' ? `<button onclick="changeCarStatus('${car.id}', 'completed')" class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200" title="סמן כהושלם">🏁</button>` : ''}
+                        ${status === 'completed' ? `<button onclick="deleteCarFromDashboard('${car.id}')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200" title="מחק מהמערכת">🗑️</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get Status Color
+        function getStatusColor(status) {
+            const colors = {
+                'waiting': 'border-yellow-500',
+                'in_progress': 'border-blue-500',
+                'ready': 'border-green-500',
+                'completed': 'border-gray-500'
+            };
+            return colors[status] || 'border-gray-300';
+        }
+
+        // Change Car Status
+        async function changeCarStatus(carId, newStatus) {
+            try {
+                await db.collection('cars').doc(carId).update({
+                    carStatus: newStatus,
+                    statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Update local cars array
+                const carIndex = cars.findIndex(c => c.id === carId);
+                if (carIndex !== -1) {
+                    cars[carIndex].carStatus = newStatus;
+                }
+                
+                renderDashboard();
+                
+                // Show notification
+                const statusNames = {
+                    'waiting': 'ממתין לטיפול',
+                    'in_progress': 'בטיפול',
+                    'ready': 'מוכן לאיסוף',
+                    'completed': 'הושלם'
+                };
+                
+                const car = cars.find(c => c.id === carId);
+                showNotification(`${car.plateNumber} הועבר ל: ${statusNames[newStatus]}`);
+                
+            } catch (error) {
+                console.error('Error changing car status:', error);
+                alert('שגיאה בעדכון הסטטוס');
+            }
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[100]';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        // Delete Car from Dashboard
+        async function deleteCarFromDashboard(carId) {
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+            
+            if (!confirm(`האם אתה בטוח שברצונך למחוק את ${car.plateNumber} מהמערכת?`)) return;
+            
+            try {
+                // Delete car
+                await db.collection('cars').doc(carId).delete();
+                
+                // Delete all maintenance records for this car
+                const maintenanceSnapshot = await db.collection('maintenance')
+                    .where('carId', '==', carId)
+                    .get();
+                
+                const deletePromises = [];
+                maintenanceSnapshot.forEach(doc => {
+                    deletePromises.push(db.collection('maintenance').doc(doc.id).delete());
+                });
+                
+                await Promise.all(deletePromises);
+                
+                // Update local array
+                cars = cars.filter(c => c.id !== carId);
+                
+                renderDashboard();
+                showNotification('הרכב נמחק בהצלחה');
+                
+            } catch (error) {
+                console.error('Error deleting car:', error);
+                alert('שגיאה במחיקת הרכב');
+            }
+        }
+
+        // ==========================================
+        // SETTINGS FUNCTIONS
+        // ==========================================
+
+        let sparePartsPhone = '';
+
+        // Load Settings
+        async function loadSettings() {
+            try {
+                const settingsDoc = await db.collection('settings').doc(currentUser.uid).get();
+                if (settingsDoc.exists) {
+                    sparePartsPhone = settingsDoc.data().sparePartsPhone || '';
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // Open Settings
+        async function openSettings() {
+            await loadSettings();
+            document.getElementById('sparePartsPhone').value = sparePartsPhone;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        // Close Settings
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        // Save Settings
+        async function saveSettings() {
+            try {
+                const phone = document.getElementById('sparePartsPhone').value.trim();
+                
+                await db.collection('settings').doc(currentUser.uid).set({
+                    sparePartsPhone: phone,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
+                sparePartsPhone = phone;
+                closeSettings();
+                showNotification('ההגדרות נשמרו בהצלחה');
+                
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('שגיאה בשמירת ההגדרות');
+            }
+        }
+
+        // Order Spare Part via WhatsApp
+        async function orderSparePart(partName, carType, model, year) {
+            // Load settings if not loaded
+            if (!sparePartsPhone) {
+                await loadSettings();
+            }
+            
+            if (!sparePartsPhone) {
+                alert('אנא הגדר מספר טלפון של חנות חלפים בהגדרות');
+                openSettings();
+                return;
+            }
+            
+            const phone = sparePartsPhone.replace(/^0/, '972').replace(/[^0-9]/g, '');
+            const message = `שלום,\n\nאני מעוניין להזמין:\n📦 חלק: ${partName}\n\n🚗 רכב:\nסוג: ${carType}\nדגם: ${model}\nשנה: ${year}\n\nתודה!`;
+            
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // ==========================================
+        // BACKUP & RESTORE FUNCTIONS
+        // ==========================================
+
+        // Open Backup Modal
+        function openBackupModal() {
+            document.getElementById('backupModal').classList.remove('hidden');
+            updateBackupInfo();
+        }
+
+        // Close Backup Modal
+        function closeBackupModal() {
+            document.getElementById('backupModal').classList.add('hidden');
+        }
+
+        // Update Backup Info
+        async function updateBackupInfo() {
+            try {
+                const totalCars = cars.length;
+                
+                const maintenanceSnapshot = await db.collection('maintenance')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                const totalMaintenance = maintenanceSnapshot.size;
+                
+                const appointmentsSnapshot = await db.collection('appointments')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                const totalAppointments = appointmentsSnapshot.size;
+                
+                document.getElementById('totalDataCount').textContent = 
+                    `${totalCars} רכבים, ${totalMaintenance} טיפולים, ${totalAppointments} פגישות`;
+                
+                // Get last backup date from localStorage
+                const lastBackup = localStorage.getItem('lastBackupDate');
+                if (lastBackup) {
+                    document.getElementById('lastBackupDate').textContent = 
+                        new Date(lastBackup).toLocaleString('he-IL');
+                }
+                
+            } catch (error) {
+                console.error('Error updating backup info:', error);
+            }
+        }
+
+        // Create Backup (without images)
+        async function createBackup() {
+            try {
+                showBackupProgress(true);
+                updateBackupProgress(10, 'אוסף נתונים...');
+                
+                // Collect all data
+                const backupData = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    cars: [],
+                    maintenance: [],
+                    appointments: [],
+                    settings: {}
+                };
+                
+                updateBackupProgress(30, 'מייצא רכבים...');
+                // Get cars (without images)
+                backupData.cars = cars.map(car => ({
+                    ...car,
+                    imageUrl: null // Remove images to keep backup small
+                }));
+                
+                updateBackupProgress(50, 'מייצא טיפולים...');
+                // Get maintenance (without images)
+                const maintenanceSnapshot = await db.collection('maintenance')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                maintenanceSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    backupData.maintenance.push({
+                        id: doc.id,
+                        ...data,
+                        images: [], // Remove images
+                        createdAt: data.createdAt?.toMillis() || null,
+                        updatedAt: data.updatedAt?.toMillis() || null
+                    });
+                });
+                
+                updateBackupProgress(70, 'מייצא פגישות...');
+                // Get appointments
+                const appointmentsSnapshot = await db.collection('appointments')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                appointmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    backupData.appointments.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toMillis() || null
+                    });
+                });
+                
+                updateBackupProgress(90, 'שומר קובץ...');
+                // Get settings
+                const settingsDoc = await db.collection('settings').doc(currentUser.uid).get();
+                if (settingsDoc.exists) {
+                    backupData.settings = settingsDoc.data();
+                }
+                
+                // Create and download file
+                const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `garage-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                // Save last backup date
+                localStorage.setItem('lastBackupDate', new Date().toISOString());
+                
+                updateBackupProgress(100, 'הגיבוי הושלם!');
+                setTimeout(() => {
+                    showBackupProgress(false);
+                    showNotification('הגיבוי נוצר בהצלחה!');
+                    updateBackupInfo();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error creating backup:', error);
+                alert('שגיאה ביצירת גיבוי: ' + error.message);
+                showBackupProgress(false);
+            }
+        }
+
+        // Create Backup with Images
+        async function createBackupWithImages() {
+            if (!confirm('גיבוי עם תמונות עשוי להיות קובץ גדול מאוד. להמשיך?')) return;
+            
+            try {
+                showBackupProgress(true);
+                updateBackupProgress(10, 'אוסף נתונים...');
+                
+                // Same as createBackup but include images
+                const backupData = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    cars: [],
+                    maintenance: [],
+                    appointments: [],
+                    settings: {}
+                };
+                
+                updateBackupProgress(30, 'מייצא רכבים עם תמונות...');
+                backupData.cars = [...cars]; // Include images
+                
+                updateBackupProgress(50, 'מייצא טיפולים עם תמונות...');
+                const maintenanceSnapshot = await db.collection('maintenance')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                maintenanceSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    backupData.maintenance.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toMillis() || null,
+                        updatedAt: data.updatedAt?.toMillis() || null
+                    });
+                });
+                
+                updateBackupProgress(70, 'מייצא פגישות...');
+                const appointmentsSnapshot = await db.collection('appointments')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                appointmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    backupData.appointments.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toMillis() || null
+                    });
+                });
+                
+                updateBackupProgress(90, 'שומר קובץ...');
+                const settingsDoc = await db.collection('settings').doc(currentUser.uid).get();
+                if (settingsDoc.exists) {
+                    backupData.settings = settingsDoc.data();
+                }
+                
+                const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `garage-backup-full-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                localStorage.setItem('lastBackupDate', new Date().toISOString());
+                
+                updateBackupProgress(100, 'הגיבוי הושלם!');
+                setTimeout(() => {
+                    showBackupProgress(false);
+                    showNotification('הגיבוי נוצר בהצלחה!');
+                    updateBackupInfo();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error creating backup with images:', error);
+                alert('שגיאה ביצירת גיבוי: ' + error.message);
+                showBackupProgress(false);
+            }
+        }
+
+        // Show/Hide Backup Progress
+        function showBackupProgress(show) {
+            const progress = document.getElementById('backupProgress');
+            if (show) {
+                progress.classList.remove('hidden');
+            } else {
+                progress.classList.add('hidden');
+                updateBackupProgress(0, '');
+            }
+        }
+
+        // Update Backup Progress
+        function updateBackupProgress(percent, text) {
+            document.getElementById('backupProgressBar').style.width = percent + '%';
+            document.getElementById('backupProgressText').textContent = text;
+        }
+
+        // Handle Restore File
+        async function handleRestoreFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('האם אתה בטוח? זה ימחק את כל הנתונים הנוכחיים!')) {
+                event.target.value = '';
+                return;
+            }
+            
+            try {
+                const text = await file.text();
+                const backupData = JSON.parse(text);
+                
+                // Validate backup
+                if (!backupData.version || !backupData.cars) {
+                    throw new Error('קובץ גיבוי לא תקין');
+                }
+                
+                showBackupProgress(true);
+                updateBackupProgress(10, 'מוחק נתונים ישנים...');
+                
+                // Delete existing data
+                await deleteAllUserData();
+                
+                updateBackupProgress(30, 'משחזר רכבים...');
+                // Restore cars
+                for (const car of backupData.cars) {
+                    const carData = { ...car };
+                    delete carData.id;
+                    await db.collection('cars').add(carData);
+                }
+                
+                updateBackupProgress(50, 'משחזר טיפולים...');
+                // Restore maintenance
+                for (const maintenance of backupData.maintenance) {
+                    const maintenanceData = { ...maintenance };
+                    delete maintenanceData.id;
+                    
+                    // Convert timestamps back
+                    if (maintenanceData.createdAt) {
+                        maintenanceData.createdAt = firebase.firestore.Timestamp.fromMillis(maintenanceData.createdAt);
+                    }
+                    if (maintenanceData.updatedAt) {
+                        maintenanceData.updatedAt = firebase.firestore.Timestamp.fromMillis(maintenanceData.updatedAt);
+                    }
+                    
+                    await db.collection('maintenance').add(maintenanceData);
+                }
+                
+                updateBackupProgress(70, 'משחזר פגישות...');
+                // Restore appointments
+                for (const appointment of backupData.appointments) {
+                    const appointmentData = { ...appointment };
+                    delete appointmentData.id;
+                    
+                    if (appointmentData.createdAt) {
+                        appointmentData.createdAt = firebase.firestore.Timestamp.fromMillis(appointmentData.createdAt);
+                    }
+                    
+                    await db.collection('appointments').add(appointmentData);
+                }
+                
+                updateBackupProgress(90, 'משחזר הגדרות...');
+                // Restore settings
+                if (backupData.settings) {
+                    await db.collection('settings').doc(currentUser.uid).set(backupData.settings);
+                }
+                
+                updateBackupProgress(100, 'השחזור הושלם!');
+                setTimeout(() => {
+                    showBackupProgress(false);
+                    alert('השחזור הושלם בהצלחה! הדף יתרענן כעת.');
+                    window.location.reload();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error restoring backup:', error);
+                alert('שגיאה בשחזור גיבוי: ' + error.message);
+                showBackupProgress(false);
+            }
+            
+            event.target.value = '';
+        }
+
+        // Delete All User Data
+        async function deleteAllUserData() {
+            // Delete cars
+            const carsSnapshot = await db.collection('cars')
+                .where('userId', '==', currentUser.uid)
+                .get();
+            
+            const deletePromises = [];
+            carsSnapshot.forEach(doc => {
+                deletePromises.push(db.collection('cars').doc(doc.id).delete());
+            });
+            
+            // Delete maintenance
+            const maintenanceSnapshot = await db.collection('maintenance')
+                .where('userId', '==', currentUser.uid)
+                .get();
+            
+            maintenanceSnapshot.forEach(doc => {
+                deletePromises.push(db.collection('maintenance').doc(doc.id).delete());
+            });
+            
+            // Delete appointments
+            const appointmentsSnapshot = await db.collection('appointments')
+                .where('userId', '==', currentUser.uid)
+                .get();
+            
+            appointmentsSnapshot.forEach(doc => {
+                deletePromises.push(db.collection('appointments').doc(doc.id).delete());
+            });
+            
+            await Promise.all(deletePromises);
+        }
+
+        // ==========================================
         // Browser Back Button Support for Mobile
         // ==========================================
         
@@ -1857,9 +2743,12 @@
             const maintenanceModal = document.getElementById('maintenanceModal');
             const calendarModal = document.getElementById('calendarModal');
             const appointmentModal = document.getElementById('appointmentModal');
+            const dashboardModal = document.getElementById('dashboardModal');
             
             // Close any open modal when back button is pressed
-            if (appointmentModal && !appointmentModal.classList.contains('hidden')) {
+            if (dashboardModal && !dashboardModal.classList.contains('hidden')) {
+                closeDashboard();
+            } else if (appointmentModal && !appointmentModal.classList.contains('hidden')) {
                 closeAppointmentModal();
             } else if (calendarModal && !calendarModal.classList.contains('hidden')) {
                 closeCalendarModal();
@@ -1880,6 +2769,7 @@
             const _openMaintenanceModal = window.openMaintenanceModal;
             const _openCalendarModal = window.openCalendarModal;
             const _openAppointmentModal = window.openAppointmentModal;
+            const _openDashboard = window.openDashboard;
             
             // Override openCarModal
             window.openCarModal = function() {
@@ -1909,6 +2799,12 @@
             window.openAppointmentModal = function() {
                 _openAppointmentModal();
                 history.pushState({ modal: 'appointment' }, '', '');
+            };
+            
+            // Override openDashboard
+            window.openDashboard = function() {
+                _openDashboard();
+                history.pushState({ modal: 'dashboard' }, '', '');
             };
         })();
     </script>
