@@ -528,12 +528,18 @@
             try {
                 const snapshot = await db.collection('maintenance')
                     .where('carId', '==', carId)
-                    .orderBy('createdAt', 'desc')
                     .get();
                 
                 const maintenanceList = [];
                 snapshot.forEach(doc => {
                     maintenanceList.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by createdAt in JavaScript (no Firestore index needed)
+                maintenanceList.sort((a, b) => {
+                    const dateA = a.createdAt?.toMillis() || 0;
+                    const dateB = b.createdAt?.toMillis() || 0;
+                    return dateB - dateA; // Newest first
                 });
                 
                 const historyDiv = document.getElementById('maintenanceHistory');
