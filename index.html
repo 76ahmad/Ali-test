@@ -81,9 +81,12 @@
                 </button>
             </div>
             
-            <div class="flex gap-4 mb-4">
+            <div class="flex gap-4 mb-4 flex-wrap">
                 <button onclick="openCarModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     + הוסף רכב
+                </button>
+                <button onclick="openCalendarModal()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2">
+                    📅 יומן פגישות
                 </button>
                 <button onclick="exportCSV()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                     ייצא נתונים
@@ -223,16 +226,122 @@
                 <div id="carDetailsContent"></div>
                 
                 <div class="mt-6">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
                         <h3 class="text-xl font-bold">היסטוריית טיפולים</h3>
-                        <button onclick="openMaintenanceModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                            + הוסף טיפול
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="openAppointmentModal()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-1 text-sm">
+                                📅 קבע פגישה
+                            </button>
+                            <button onclick="openMaintenanceModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                + הוסף טיפול
+                            </button>
+                        </div>
                     </div>
                     
                     <div id="maintenanceHistory" class="space-y-4"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div id="calendarModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold">📅 יומן פגישות</h2>
+                <button onclick="closeCalendarModal()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Calendar Navigation -->
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="previousMonth()" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">
+                        ←
+                    </button>
+                    <h3 class="text-xl font-bold" id="currentMonthYear"></h3>
+                    <button onclick="nextMonth()" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">
+                        →
+                    </button>
+                </div>
+                
+                <!-- Calendar Grid -->
+                <div class="grid grid-cols-7 gap-2 mb-6">
+                    <div class="text-center font-bold p-2">א׳</div>
+                    <div class="text-center font-bold p-2">ב׳</div>
+                    <div class="text-center font-bold p-2">ג׳</div>
+                    <div class="text-center font-bold p-2">ד׳</div>
+                    <div class="text-center font-bold p-2">ה׳</div>
+                    <div class="text-center font-bold p-2">ו׳</div>
+                    <div class="text-center font-bold p-2">ש׳</div>
+                </div>
+                <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
+                
+                <!-- Appointments List for Selected Day -->
+                <div class="mt-6">
+                    <h3 class="text-xl font-bold mb-4" id="selectedDayTitle">פגישות היום</h3>
+                    <div id="dayAppointments"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal -->
+    <div id="appointmentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full">
+            <div class="bg-purple-600 text-white p-6 rounded-t-lg">
+                <h2 class="text-2xl font-bold">📅 פגישה חדשה</h2>
+            </div>
+            
+            <form id="appointmentForm" class="p-6">
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">רכב</label>
+                    <select id="appointmentCar" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        <option value="">בחר רכב...</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">תאריך</label>
+                    <input type="date" id="appointmentDate" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">שעה</label>
+                    <input type="time" id="appointmentTime" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">סוג הפגישה</label>
+                    <select id="appointmentType" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        <option value="">בחר סוג...</option>
+                        <option value="שירות">שירות / טיפול</option>
+                        <option value="תיקון">תיקון</option>
+                        <option value="בדיקה">בדיקה תקופתית</option>
+                        <option value="אחר">אחר</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">הערות</label>
+                    <textarea id="appointmentNotes" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500" placeholder="הערות נוספות..."></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="appointmentReminder" class="ml-2">
+                        <span class="text-gray-700">שלח תזכורת ווטסאפ ללקוח</span>
+                    </label>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
+                        שמור פגישה
+                    </button>
+                    <button type="button" onclick="closeAppointmentModal()" class="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500">
+                        ביטול
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -252,11 +361,16 @@
         let app, db, auth;
         let currentUser = null;
         let cars = [];
+        let appointments = [];
         let editingCarId = null;
         let currentCarId = null;
         let editingMaintenanceId = null;
+        let editingAppointmentId = null;
         let isRegisterMode = false;
         let maintenanceImages = [];
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDate = null;
 
         try {
             app = firebase.initializeApp(firebaseConfig);
@@ -330,6 +444,7 @@
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 loadCars();
+                loadAppointments();
             } else {
                 currentUser = null;
                 document.getElementById('loginScreen').classList.remove('hidden');
@@ -1140,22 +1255,278 @@
         });
 
         // ==========================================
+        // APPOINTMENTS SYSTEM
+        // ==========================================
+
+        // Load Appointments from Firebase
+        async function loadAppointments() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection('appointments')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('date', 'asc')
+                    .get();
+                
+                appointments = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                console.log('Loaded appointments:', appointments.length);
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+            }
+        }
+
+        // Open Calendar Modal
+        function openCalendarModal() {
+            document.getElementById('calendarModal').classList.remove('hidden');
+            renderCalendar();
+        }
+
+        // Close Calendar Modal
+        function closeCalendarModal() {
+            document.getElementById('calendarModal').classList.add('hidden');
+        }
+
+        // Open Appointment Modal
+        function openAppointmentModal() {
+            editingAppointmentId = null;
+            document.getElementById('appointmentForm').reset();
+            
+            // Populate car dropdown
+            const carSelect = document.getElementById('appointmentCar');
+            carSelect.innerHTML = '<option value="">בחר רכב...</option>';
+            
+            cars.forEach(car => {
+                const option = document.createElement('option');
+                option.value = car.id;
+                option.textContent = `${car.plateNumber} - ${car.ownerName}`;
+                if (currentCarId && car.id === currentCarId) {
+                    option.selected = true;
+                }
+                carSelect.appendChild(option);
+            });
+            
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appointmentDate').value = today;
+            
+            document.getElementById('appointmentModal').classList.remove('hidden');
+        }
+
+        // Close Appointment Modal
+        function closeAppointmentModal() {
+            document.getElementById('appointmentModal').classList.add('hidden');
+            editingAppointmentId = null;
+        }
+
+        // Save Appointment
+        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const carId = document.getElementById('appointmentCar').value;
+            const car = cars.find(c => c.id === carId);
+            
+            const appointmentData = {
+                userId: currentUser.uid,
+                carId: carId,
+                plateNumber: car.plateNumber,
+                ownerName: car.ownerName,
+                phone: car.phone || '',
+                date: document.getElementById('appointmentDate').value,
+                time: document.getElementById('appointmentTime').value,
+                type: document.getElementById('appointmentType').value,
+                notes: document.getElementById('appointmentNotes').value,
+                reminder: document.getElementById('appointmentReminder').checked,
+                status: 'scheduled',
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                if (editingAppointmentId) {
+                    await db.collection('appointments').doc(editingAppointmentId).update(appointmentData);
+                } else {
+                    await db.collection('appointments').add(appointmentData);
+                }
+                
+                await loadAppointments();
+                closeAppointmentModal();
+                renderCalendar();
+                
+                // Send WhatsApp reminder if checked
+                if (appointmentData.reminder && appointmentData.phone) {
+                    sendAppointmentReminder(appointmentData);
+                }
+                
+                alert('הפגישה נשמרה בהצלחה!');
+            } catch (error) {
+                console.error('Error saving appointment:', error);
+                alert('שגיאה בשמירת הפגישה');
+            }
+        });
+
+        // Send WhatsApp Reminder
+        function sendAppointmentReminder(appointment) {
+            const phone = appointment.phone.replace(/^0/, '972');
+            const date = new Date(appointment.date).toLocaleDateString('he-IL');
+            const message = `שלום ${appointment.ownerName},\n\nמזכירים לך על פגישה במוסך:\n📅 תאריך: ${date}\n⏰ שעה: ${appointment.time}\n🚗 רכב: ${appointment.plateNumber}\n📋 סוג: ${appointment.type}\n\nנתראה!`;
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Previous Month
+        function previousMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        // Next Month
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        // Render Calendar
+        function renderCalendar() {
+            const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            document.getElementById('currentMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'p-2';
+                calendarGrid.appendChild(emptyCell);
+            }
+            
+            // Add days of month
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayAppointments = appointments.filter(apt => apt.date === dateStr);
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = `p-2 border rounded cursor-pointer hover:bg-purple-50 ${dateStr === todayStr ? 'bg-blue-100 border-blue-500' : ''}`;
+                dayCell.onclick = () => selectDate(dateStr);
+                
+                dayCell.innerHTML = `
+                    <div class="text-center font-bold">${day}</div>
+                    ${dayAppointments.length > 0 ? `<div class="text-xs text-purple-600 text-center">${dayAppointments.length} פגישות</div>` : ''}
+                `;
+                
+                calendarGrid.appendChild(dayCell);
+            }
+            
+            // Show today's appointments by default
+            selectDate(todayStr);
+        }
+
+        // Select Date
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            const date = new Date(dateStr);
+            const dateFormatted = date.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            document.getElementById('selectedDayTitle').textContent = `פגישות ליום ${dateFormatted}`;
+            
+            const dayAppointments = appointments.filter(apt => apt.date === dateStr).sort((a, b) => a.time.localeCompare(b.time));
+            const container = document.getElementById('dayAppointments');
+            
+            if (dayAppointments.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">אין פגישות מתוכננות ליום זה</p>';
+                return;
+            }
+            
+            container.innerHTML = dayAppointments.map(apt => `
+                <div class="border rounded-lg p-4 mb-3 bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="font-bold text-lg">${apt.time} - ${apt.type}</div>
+                            <div class="text-gray-700">🚗 ${apt.plateNumber} - ${apt.ownerName}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editAppointment('${apt.id}')" class="text-blue-600 hover:text-blue-800">✏️</button>
+                            <button onclick="deleteAppointment('${apt.id}')" class="text-red-600 hover:text-red-800">🗑️</button>
+                        </div>
+                    </div>
+                    ${apt.notes ? `<div class="text-sm text-gray-600 mt-2">📝 ${apt.notes}</div>` : ''}
+                    ${apt.phone ? `<button onclick="sendAppointmentReminder(${JSON.stringify(apt).replace(/"/g, '&quot;')})" class="mt-2 text-sm text-green-600 hover:text-green-800">📱 שלח תזכורת ווטסאפ</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Edit Appointment
+        async function editAppointment(appointmentId) {
+            const appointment = appointments.find(apt => apt.id === appointmentId);
+            if (!appointment) return;
+            
+            editingAppointmentId = appointmentId;
+            
+            document.getElementById('appointmentCar').value = appointment.carId;
+            document.getElementById('appointmentDate').value = appointment.date;
+            document.getElementById('appointmentTime').value = appointment.time;
+            document.getElementById('appointmentType').value = appointment.type;
+            document.getElementById('appointmentNotes').value = appointment.notes || '';
+            document.getElementById('appointmentReminder').checked = appointment.reminder || false;
+            
+            document.getElementById('appointmentModal').classList.remove('hidden');
+        }
+
+        // Delete Appointment
+        async function deleteAppointment(appointmentId) {
+            if (!confirm('האם אתה בטוח שברצונך למחוק פגישה זו?')) return;
+            
+            try {
+                await db.collection('appointments').doc(appointmentId).delete();
+                await loadAppointments();
+                renderCalendar();
+                alert('הפגישה נמחקה בהצלחה');
+            } catch (error) {
+                console.error('Error deleting appointment:', error);
+                alert('שגיאה במחיקת הפגישה');
+            }
+        }
+
+        // ==========================================
         // Browser Back Button Support for Mobile
         // ==========================================
         
         // Handle browser back button
         window.addEventListener('popstate', function(event) {
             const carModal = document.getElementById('carModal');
-            const detailsModal = document.getElementById('detailsModal');
+            const detailsModal = document.getElementById('carDetailsModal');
             const maintenanceModal = document.getElementById('maintenanceModal');
+            const calendarModal = document.getElementById('calendarModal');
+            const appointmentModal = document.getElementById('appointmentModal');
             
             // Close any open modal when back button is pressed
-            if (carModal && !carModal.classList.contains('hidden')) {
+            if (appointmentModal && !appointmentModal.classList.contains('hidden')) {
+                closeAppointmentModal();
+            } else if (calendarModal && !calendarModal.classList.contains('hidden')) {
+                closeCalendarModal();
+            } else if (carModal && !carModal.classList.contains('hidden')) {
                 closeCarModal();
             } else if (maintenanceModal && !maintenanceModal.classList.contains('hidden')) {
                 closeMaintenanceModal();
             } else if (detailsModal && !detailsModal.classList.contains('hidden')) {
-                closeDetailsModal();
+                closeCarDetailsModal();
             }
         });
 
@@ -1163,8 +1534,10 @@
         (function() {
             // Save original functions
             const _openCarModal = window.openCarModal;
-            const _openDetailsModal = window.openDetailsModal;
+            const _openCarDetailsModal = window.openCarDetailsModal;
             const _openMaintenanceModal = window.openMaintenanceModal;
+            const _openCalendarModal = window.openCalendarModal;
+            const _openAppointmentModal = window.openAppointmentModal;
             
             // Override openCarModal
             window.openCarModal = function() {
@@ -1172,9 +1545,9 @@
                 history.pushState({ modal: 'car' }, '', '');
             };
             
-            // Override openDetailsModal
-            window.openDetailsModal = function(carId) {
-                _openDetailsModal(carId);
+            // Override openCarDetailsModal
+            window.openCarDetailsModal = function(carId) {
+                _openCarDetailsModal(carId);
                 history.pushState({ modal: 'details' }, '', '');
             };
             
@@ -1182,6 +1555,18 @@
             window.openMaintenanceModal = function() {
                 _openMaintenanceModal();
                 history.pushState({ modal: 'maintenance' }, '', '');
+            };
+            
+            // Override openCalendarModal
+            window.openCalendarModal = function() {
+                _openCalendarModal();
+                history.pushState({ modal: 'calendar' }, '', '');
+            };
+            
+            // Override openAppointmentModal
+            window.openAppointmentModal = function() {
+                _openAppointmentModal();
+                history.pushState({ modal: 'appointment' }, '', '');
             };
         })();
     </script>
