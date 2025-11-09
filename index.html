@@ -461,8 +461,8 @@
                     
                     <div class="mt-3 flex gap-2 flex-wrap">
                         <button onclick="viewCarDetails('${car.id}')" class="text-green-600 hover:underline text-sm">📋 פרטים</button>
-                        <button onclick="event.stopPropagation(); editCar('${car.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
-                        <button onclick="event.stopPropagation(); deleteCar('${car.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
+                        <button onclick="editCar('${car.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
+                        <button onclick="deleteCar('${car.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
                     </div>
                 </div>
             `).join('');
