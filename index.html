@@ -15,26 +15,26 @@
 
     <style>
         :root {
-            --primary-blue: #1e3a8a;
-            --primary-blue-light: #3b82f6;
-            --secondary-orange: #f97316;
-            --secondary-orange-light: #fb923c;
-            --dark-gray: #1f2937;
-            --light-gray: #f3f4f6;
-            --silver: #e5e7eb;
+            --primary-yellow: #fbbf24;
+            --primary-yellow-dark: #f59e0b;
+            --primary-black: #111827;
+            --secondary-gray: #374151;
+            --light-gray: #f9fafb;
             --white: #ffffff;
+            --silver: #e5e7eb;
             --success-green: #10b981;
             --danger-red: #ef4444;
+            --accent-yellow: #fcd34d;
         }
         
         body {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         .loader {
             border: 4px solid var(--silver);
-            border-top: 4px solid var(--secondary-orange);
+            border-top: 4px solid var(--primary-yellow);
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -46,98 +46,130 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Car-themed decorative elements */
-        .car-pattern {
+        /* Racing stripes pattern */
+        .racing-pattern {
             background-image: 
-                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.03) 35px, rgba(255,255,255,.03) 70px);
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(251, 191, 36, 0.05) 20px,
+                    rgba(251, 191, 36, 0.05) 40px
+                );
         }
         
         /* Card hover effects */
         .car-card {
             transition: all 0.3s ease;
-            border-left: 4px solid var(--secondary-orange);
+            border-left: 4px solid var(--primary-yellow);
+            background: var(--white);
         }
         
         .car-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-left-color: var(--primary-blue);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(251, 191, 36, 0.25), 
+                        0 0 0 1px rgba(251, 191, 36, 0.1);
+            border-left-color: var(--primary-yellow-dark);
         }
         
         /* Buttons */
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--primary-yellow-dark) 100%);
+            color: var(--primary-black);
+            font-weight: 700;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(251, 191, 36, 0.3);
         }
         
         .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(30, 58, 138, 0.3);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.4);
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, var(--secondary-orange) 0%, var(--secondary-orange-light) 100%);
+            background: var(--white);
+            color: var(--primary-black);
+            border: 2px solid var(--primary-yellow);
+            font-weight: 700;
             transition: all 0.3s ease;
         }
         
         .btn-secondary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+            background: var(--primary-yellow);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);
+        }
+        
+        .btn-black {
+            background: var(--primary-black);
+            color: var(--white);
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-black:hover {
+            background: var(--secondary-gray);
+            transform: translateY(-2px) scale(1.05);
         }
         
         /* Header gradient */
         .header-gradient {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, var(--primary-black) 0%, var(--secondary-gray) 100%);
+            border-bottom: 4px solid var(--primary-yellow);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
         
         /* Input focus */
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: var(--secondary-orange);
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+            border-color: var(--primary-yellow);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
         }
         
         /* Modal backdrop */
         .modal-backdrop {
             backdrop-filter: blur(5px);
-            background-color: rgba(31, 41, 55, 0.7);
+            background-color: rgba(17, 24, 39, 0.8);
         }
         
         /* Stats cards */
         .stat-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
-            border-top: 3px solid var(--secondary-orange);
+            background: var(--white);
+            border-top: 4px solid var(--primary-yellow);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         /* Maintenance history item */
         .maintenance-item {
-            border-right: 3px solid var(--primary-blue-light);
+            background: var(--white);
+            border-right: 4px solid var(--primary-yellow);
             transition: all 0.3s ease;
         }
         
         .maintenance-item:hover {
-            border-right-color: var(--secondary-orange);
+            border-right-color: var(--primary-yellow-dark);
             transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
         }
         
         /* Scrollbar styling */
         ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
         }
         
         ::-webkit-scrollbar-track {
-            background: var(--light-gray);
+            background: var(--primary-black);
         }
         
         ::-webkit-scrollbar-thumb {
-            background: var(--primary-blue-light);
-            border-radius: 5px;
+            background: var(--primary-yellow);
+            border-radius: 6px;
+            border: 2px solid var(--primary-black);
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-blue);
+            background: var(--primary-yellow-dark);
         }
         
         /* Badge styles */
@@ -147,18 +179,63 @@
             gap: 0.5rem;
             padding: 0.5rem 1rem;
             border-radius: 9999px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 0.875rem;
         }
         
-        .badge-blue {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--primary-blue);
+        .badge-yellow {
+            background: var(--primary-yellow);
+            color: var(--primary-black);
         }
         
-        .badge-orange {
-            background: rgba(249, 115, 22, 0.1);
-            color: var(--secondary-orange);
+        .badge-black {
+            background: var(--primary-black);
+            color: var(--primary-yellow);
+        }
+        
+        .badge-white {
+            background: var(--white);
+            color: var(--primary-black);
+            border: 2px solid var(--primary-yellow);
+        }
+        
+        /* Racing stripe accent */
+        .racing-stripe {
+            position: relative;
+        }
+        
+        .racing-stripe::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, 
+                var(--primary-yellow) 0%, 
+                transparent 50%, 
+                var(--primary-yellow) 100%);
+        }
+        
+        /* Checkered flag pattern */
+        .checkered-pattern {
+            background-image: 
+                linear-gradient(45deg, #111827 25%, transparent 25%),
+                linear-gradient(-45deg, #111827 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #111827 75%),
+                linear-gradient(-45deg, transparent 75%, #111827 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        /* Glow effect for yellow elements */
+        .glow-yellow {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+        
+        /* Card image overlay */
+        .image-overlay {
+            background: linear-gradient(to top, rgba(17, 24, 39, 0.9) 0%, transparent 50%);
         }
     </style>
 
@@ -166,86 +243,95 @@
 <body class="bg-gray-100 min-h-screen">
 
     <!-- Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center car-pattern" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+    <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center racing-pattern" style="background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);">
         <div class="text-center">
             <div class="mb-6">
-                <div class="text-6xl mb-4">🚗</div>
-                <div class="loader mx-auto mb-4"></div>
+                <div class="text-7xl mb-4">🏁</div>
+                <div class="loader mx-auto mb-4 glow-yellow"></div>
             </div>
-            <p class="text-white text-xl font-bold">מערכת ניהול מוסך</p>
-            <p class="text-blue-200 mt-2">טוען מערכת...</p>
+            <h1 class="text-white text-3xl font-bold mb-2">מערכת ניהול מוסך</h1>
+            <p class="text-yellow-400 text-xl font-semibold">טוען מערכת...</p>
+            <div class="mt-4 flex justify-center gap-2">
+                <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+                <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+            </div>
         </div>
     </div>
 
     <!-- Login Screen -->
-    <div id="loginScreen" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 car-pattern" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+    <div id="loginScreen" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 racing-pattern" style="background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-4 border-yellow-400">
             <div class="text-center mb-6">
-                <div class="text-6xl mb-4">🚗</div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">מערכת ניהול מוסך</h1>
-                <p class="text-gray-500">ניהול מקצועי לרכבים ולקוחות</p>
+                <div class="text-7xl mb-4">🏁</div>
+                <h1 class="text-4xl font-black text-gray-900 mb-2" style="text-shadow: 2px 2px 0px #fbbf24;">מערכת ניהול מוסך</h1>
+                <div class="h-1 w-32 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 mx-auto mb-3"></div>
+                <p class="text-gray-600 font-semibold">ניהול מקצועי ומהיר 🚗</p>
             </div>
             
-            <div id="errorMsg" class="hidden bg-red-50 border-r-4 border-red-500 text-red-700 px-4 py-3 rounded mb-4"></div>
-            <div id="successMsg" class="hidden bg-green-50 border-r-4 border-green-500 text-green-700 px-4 py-3 rounded mb-4"></div>
+            <div id="errorMsg" class="hidden bg-red-50 border-r-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 font-semibold"></div>
+            <div id="successMsg" class="hidden bg-green-50 border-r-4 border-green-500 text-green-700 px-4 py-3 rounded-lg mb-4 font-semibold"></div>
             
             <form id="loginForm">
                 <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">אימייל</label>
-                    <input type="email" id="email" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-orange-500 transition-colors">
+                    <label class="block text-gray-900 font-bold mb-2">אימייל</label>
+                    <input type="email" id="email" required class="w-full px-4 py-3 border-3 border-gray-300 rounded-lg focus:outline-none focus:border-yellow-400 transition-all">
                 </div>
                 
                 <div class="mb-6">
-                    <label class="block text-gray-700 font-semibold mb-2">סיסמה</label>
-                    <input type="password" id="password" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-orange-500 transition-colors">
+                    <label class="block text-gray-900 font-bold mb-2">סיסמה</label>
+                    <input type="password" id="password" required class="w-full px-4 py-3 border-3 border-gray-300 rounded-lg focus:outline-none focus:border-yellow-400 transition-all">
                 </div>
                 
-                <button type="submit" id="authBtn" class="w-full btn-primary text-white py-3 rounded-lg font-bold text-lg shadow-lg">
-                    🚗 התחבר
+                <button type="submit" id="authBtn" class="w-full btn-primary py-4 rounded-xl font-black text-xl">
+                    🏁 התחבר למערכת
                 </button>
             </form>
             
-            <p class="text-center mt-6">
-                <a href="#" id="toggleAuth" class="text-orange-500 hover:text-orange-600 font-semibold">אין לך חשבון? הירשם</a>
-            </p>
+            <div class="text-center mt-6">
+                <div class="h-px bg-gray-200 mb-6"></div>
+                <a href="#" id="toggleAuth" class="text-yellow-500 hover:text-yellow-600 font-bold text-lg transition-colors">
+                    אין לך חשבון? <span class="underline">הירשם כעת</span>
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Main App -->
     <div id="mainApp" class="hidden container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="header-gradient rounded-2xl shadow-xl p-6 mb-6">
-            <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="text-4xl">🚗</div>
+        <div class="header-gradient rounded-2xl shadow-2xl p-6 mb-6 racing-stripe">
+            <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+                <div class="flex items-center gap-4">
+                    <div class="text-6xl">🏁</div>
                     <div>
-                        <h1 class="text-2xl font-bold text-white">מערכת ניהול מוסך</h1>
-                        <p class="text-blue-200 text-sm">ניהול מקצועי ויעיל</p>
+                        <h1 class="text-3xl font-black text-white" style="text-shadow: 2px 2px 0px #fbbf24;">מערכת ניהול מוסך</h1>
+                        <p class="text-yellow-400 font-bold">ניהול מקצועי ומהיר ⚡</p>
                     </div>
-                    <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                        <span class="text-white">👤</span>
-                        <span id="userName" class="font-bold text-white">משתמש</span>
-                        <button onclick="editUserName()" class="text-orange-300 hover:text-orange-100 transition-colors" title="ערוך שם">
+                    <div class="flex items-center gap-2 bg-yellow-400 px-5 py-3 rounded-full shadow-lg">
+                        <span class="text-2xl">👤</span>
+                        <span id="userName" class="font-black text-gray-900">משתמש</span>
+                        <button onclick="editUserName()" class="text-gray-700 hover:text-gray-900 transition-colors font-bold text-xl" title="ערוך שם">
                             ✏️
                         </button>
                     </div>
                 </div>
-                <button onclick="signOut()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-bold transition-all hover:scale-105 shadow-lg">
+                <button onclick="signOut()" class="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-black text-lg transition-all hover:scale-105 shadow-lg border-2 border-white">
                     ⬅ יציאה
                 </button>
             </div>
             
             <div class="flex gap-3 flex-wrap">
-                <button onclick="openCarModal()" class="btn-secondary text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg">
-                    ➕ הוסף רכב
+                <button onclick="openCarModal()" class="btn-primary px-8 py-4 rounded-xl font-black text-lg flex items-center gap-2">
+                    ➕ הוסף רכב חדש
                 </button>
-                <button onclick="openDashboard()" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg">
+                <button onclick="openDashboard()" class="btn-secondary px-6 py-4 rounded-xl font-bold text-lg flex items-center gap-2">
                     📊 לוח בקרה
                 </button>
-                <button onclick="openCalendarModal()" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg">
+                <button onclick="openCalendarModal()" class="btn-secondary px-6 py-4 rounded-xl font-bold text-lg flex items-center gap-2">
                     📅 יומן פגישות
                 </button>
-                <button onclick="openSettings()" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg">
+                <button onclick="openSettings()" class="btn-black px-6 py-4 rounded-xl font-bold text-lg flex items-center gap-2">
                     ⚙️ הגדרות
                 </button>
                 <button onclick="openBackupModal()" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 flex items-center gap-2">
@@ -1080,39 +1166,43 @@
             emptyState.classList.add('hidden');
             
             grid.innerHTML = cars.map(car => `
-                <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl p-5 car-card transition-all duration-300" data-search="${car.plateNumber} ${car.ownerName || ''}">
+                <div class="bg-white rounded-2xl shadow-xl hover:shadow-2xl p-6 car-card transition-all duration-300 border-t-4 border-yellow-400" data-search="${car.plateNumber} ${car.ownerName || ''}">
                     ${car.imageUrl ? 
-                        `<div class="relative overflow-hidden rounded-lg mb-4 cursor-pointer group" onclick="viewCarDetails('${car.id}')">
-                            <img src="${car.imageUrl}" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        `<div class="relative overflow-hidden rounded-xl mb-4 cursor-pointer group border-4 border-gray-100" onclick="viewCarDetails('${car.id}')">
+                            <img src="${car.imageUrl}" class="w-full h-52 object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 image-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="absolute bottom-4 left-4 right-4 text-white font-bold text-lg">
+                                    לחץ לפרטים מלאים 🏁
+                                </div>
+                            </div>
                         </div>` : 
-                        `<div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg mb-4 flex items-center justify-center text-gray-400 cursor-pointer hover:from-gray-200 hover:to-gray-300 transition-all" onclick="viewCarDetails('${car.id}')">
+                        `<div class="w-full h-52 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-xl mb-4 flex items-center justify-center cursor-pointer hover:from-gray-800 hover:to-gray-900 transition-all border-4 border-yellow-400" onclick="viewCarDetails('${car.id}')">
                             <div class="text-center">
-                                <div class="text-6xl mb-2">🚗</div>
-                                <p class="text-sm">אין תמונה</p>
+                                <div class="text-7xl mb-3">🏁</div>
+                                <p class="text-yellow-400 font-bold text-lg">אין תמונה</p>
                             </div>
                         </div>`
                     }
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                         <div class="flex items-center justify-between">
-                            <h3 class="font-bold text-xl cursor-pointer hover:text-orange-500 transition-colors" onclick="viewCarDetails('${car.id}')">${car.plateNumber}</h3>
-                            <span class="badge badge-orange">🚗</span>
+                            <h3 class="font-black text-2xl cursor-pointer hover:text-yellow-500 transition-colors" onclick="viewCarDetails('${car.id}')" style="text-shadow: 1px 1px 0px #fbbf24;">${car.plateNumber}</h3>
+                            <span class="badge badge-yellow text-lg">🏁</span>
                         </div>
-                        ${car.ownerName ? `<p class="text-gray-700 font-semibold">👤 ${car.ownerName}</p>` : ''}
-                        ${car.phone ? `<p class="text-gray-600 text-sm">📞 ${car.phone}</p>` : ''}
-                        ${car.carType ? `<p class="text-gray-600 text-sm flex items-center gap-2"><span class="badge badge-blue text-xs">${car.carType}</span></p>` : ''}
-                        ${car.model ? `<p class="text-gray-600 text-sm">📋 ${car.model}</p>` : ''}
-                        ${car.year ? `<p class="text-gray-600 text-sm">📅 ${car.year}</p>` : ''}
+                        ${car.ownerName ? `<p class="text-gray-800 font-bold text-lg flex items-center gap-2">👤 ${car.ownerName}</p>` : ''}
+                        ${car.phone ? `<p class="text-gray-700 font-semibold flex items-center gap-2">📞 ${car.phone}</p>` : ''}
+                        ${car.carType ? `<div><span class="badge badge-black">${car.carType}</span></div>` : ''}
+                        ${car.model ? `<p class="text-gray-600 font-semibold">📋 ${car.model}</p>` : ''}
+                        ${car.year ? `<p class="text-gray-600 font-semibold">📅 ${car.year}</p>` : ''}
                     </div>
                     
-                    <div class="mt-4 pt-4 border-t border-gray-100 flex gap-2 flex-wrap">
-                        <button onclick="viewCarDetails('${car.id}')" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 shadow">
+                    <div class="mt-5 pt-5 border-t-2 border-gray-100 grid grid-cols-3 gap-2">
+                        <button onclick="viewCarDetails('${car.id}')" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-3 rounded-xl font-black text-sm transition-all hover:scale-105 shadow-lg">
                             📋 פרטים
                         </button>
-                        <button onclick="editCar('${car.id}')" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 shadow">
+                        <button onclick="editCar('${car.id}')" class="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 px-4 py-3 rounded-xl font-black text-sm transition-all hover:scale-105 shadow-lg">
                             ✏️ ערוך
                         </button>
-                        <button onclick="deleteCar('${car.id}')" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 shadow">
+                        <button onclick="deleteCar('${car.id}')" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-xl font-black text-sm transition-all hover:scale-105 shadow-lg">
                             🗑️ מחק
                         </button>
                     </div>
