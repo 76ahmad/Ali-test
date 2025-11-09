@@ -1209,6 +1209,21 @@
                             <div class="flex-1">
                                 <h3 class="text-xl font-bold text-gray-900 cursor-pointer hover:text-yellow-600 transition-colors mb-1" onclick="viewCarDetails('${car.id}')">${car.plateNumber}</h3>
                                 ${car.ownerName ? `<p class="text-gray-700 font-medium">${car.ownerName}</p>` : ''}
+                                ${car.carStatus ? `
+                                    <span class="inline-block mt-2 text-xs px-2 py-1 rounded ${
+                                        car.carStatus === 'waiting' ? 'bg-yellow-100 text-yellow-700' :
+                                        car.carStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                                        car.carStatus === 'ready' ? 'bg-green-100 text-green-700' :
+                                        'bg-gray-100 text-gray-700'
+                                    }">
+                                        ${
+                                            car.carStatus === 'waiting' ? '⏳ ממתין' :
+                                            car.carStatus === 'in_progress' ? '🔧 בטיפול' :
+                                            car.carStatus === 'ready' ? '✅ מוכן' :
+                                            '🏁 הושלם'
+                                        }
+                                    </span>
+                                ` : ''}
                             </div>
                             <span class="badge badge-yellow">🚗</span>
                         </div>
@@ -1220,16 +1235,23 @@
                             ${car.year ? `<div class="info-item"><span>📅</span><span>${car.year}</span></div>` : ''}
                         </div>
                         
-                        <div class="pt-4 border-t border-gray-100 grid grid-cols-3 gap-2">
-                            <button onclick="viewCarDetails('${car.id}')" class="btn btn-success text-xs py-2">
-                                פרטים
-                            </button>
-                            <button onclick="editCar('${car.id}')" class="btn btn-primary text-xs py-2">
-                                ערוך
-                            </button>
-                            <button onclick="deleteCar('${car.id}')" class="btn btn-danger text-xs py-2">
-                                מחק
-                            </button>
+                        <div class="pt-4 border-t border-gray-100 space-y-2">
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="viewCarDetails('${car.id}')" class="btn btn-success text-xs py-2">
+                                    פרטים
+                                </button>
+                                <button onclick="editCar('${car.id}')" class="btn btn-primary text-xs py-2">
+                                    ערוך
+                                </button>
+                                <button onclick="deleteCar('${car.id}')" class="btn btn-danger text-xs py-2">
+                                    מחק
+                                </button>
+                            </div>
+                            ${!car.carStatus ? `
+                                <button onclick="addCarToDashboard('${car.id}')" class="btn btn-secondary w-full text-xs py-2">
+                                    📊 הוסף ללוח בקרה
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -2536,7 +2558,7 @@
                         ${status !== 'in_progress' ? `<button onclick="changeCarStatus('${car.id}', 'in_progress')" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200" title="העבר לטיפול">🔧</button>` : ''}
                         ${status !== 'ready' ? `<button onclick="changeCarStatus('${car.id}', 'ready')" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200" title="סמן כמוכן">✅</button>` : ''}
                         ${status !== 'completed' ? `<button onclick="changeCarStatus('${car.id}', 'completed')" class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200" title="סמן כהושלם">🏁</button>` : ''}
-                        ${status === 'completed' ? `<button onclick="deleteCarFromDashboard('${car.id}')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200" title="מחק מהמערכת">🗑️</button>` : ''}
+                        <button onclick="removeCarFromDashboard('${car.id}')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200" title="הסר מלוח הבקרה">❌</button>
                     </div>
                 </div>
             `).join('');
@@ -2599,37 +2621,57 @@
         }
 
         // Delete Car from Dashboard
-        async function deleteCarFromDashboard(carId) {
+        // Remove Car From Dashboard (only remove status, not delete car)
+        async function removeCarFromDashboard(carId) {
             const car = cars.find(c => c.id === carId);
             if (!car) return;
             
-            if (!confirm(`האם אתה בטוח שברצונך למחוק את ${car.plateNumber} מהמערכת?`)) return;
+            if (!confirm(`האם להסיר את ${car.plateNumber} מלוח הבקרה?`)) return;
             
             try {
-                // Delete car
-                await db.collection('cars').doc(carId).delete();
-                
-                // Delete all maintenance records for this car
-                const maintenanceSnapshot = await db.collection('maintenance')
-                    .where('carId', '==', carId)
-                    .get();
-                
-                const deletePromises = [];
-                maintenanceSnapshot.forEach(doc => {
-                    deletePromises.push(db.collection('maintenance').doc(doc.id).delete());
+                // Remove status from car (not delete car)
+                await db.collection('cars').doc(carId).update({
+                    carStatus: firebase.firestore.FieldValue.delete(),
+                    statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                await Promise.all(deletePromises);
-                
-                // Update local array
-                cars = cars.filter(c => c.id !== carId);
+                // Update local cars array
+                const carIndex = cars.findIndex(c => c.id === carId);
+                if (carIndex !== -1) {
+                    delete cars[carIndex].carStatus;
+                }
                 
                 renderDashboard();
-                showNotification('הרכב נמחק בהצלחה');
+                await loadCars(); // Reload to update main grid
+                showNotification('הרכב הוסר מלוח הבקרה');
                 
             } catch (error) {
-                console.error('Error deleting car:', error);
-                alert('שגיאה במחיקת הרכב');
+                console.error('Error removing car from dashboard:', error);
+                alert('שגיאה בהסרת הרכב מלוח הבקרה');
+            }
+        }
+
+        // Add Car To Dashboard
+        async function addCarToDashboard(carId) {
+            try {
+                // Add car to dashboard with 'waiting' status
+                await db.collection('cars').doc(carId).update({
+                    carStatus: 'waiting',
+                    statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Update local cars array
+                const carIndex = cars.findIndex(c => c.id === carId);
+                if (carIndex !== -1) {
+                    cars[carIndex].carStatus = 'waiting';
+                }
+                
+                await loadCars(); // Reload to update main grid
+                showNotification('הרכב נוסף ללוח הבקרה');
+                
+            } catch (error) {
+                console.error('Error adding car to dashboard:', error);
+                alert('שגיאה בהוספת הרכב ללוח הבקרה');
             }
         }
 
