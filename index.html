@@ -1265,7 +1265,6 @@
             try {
                 const snapshot = await db.collection('appointments')
                     .where('userId', '==', currentUser.uid)
-                    .orderBy('date', 'asc')
                     .get();
                 
                 appointments = snapshot.docs.map(doc => ({
@@ -1273,15 +1272,24 @@
                     ...doc.data()
                 }));
                 
+                // Sort by date locally
+                appointments.sort((a, b) => {
+                    const dateA = new Date(a.date + ' ' + a.time);
+                    const dateB = new Date(b.date + ' ' + b.time);
+                    return dateA - dateB;
+                });
+                
                 console.log('Loaded appointments:', appointments.length);
             } catch (error) {
                 console.error('Error loading appointments:', error);
+                alert('שגיאה בטעינת פגישות: ' + error.message);
             }
         }
 
         // Open Calendar Modal
-        function openCalendarModal() {
+        async function openCalendarModal() {
             document.getElementById('calendarModal').classList.remove('hidden');
+            await loadAppointments(); // Reload appointments
             renderCalendar();
         }
 
@@ -1347,13 +1355,21 @@
             try {
                 if (editingAppointmentId) {
                     await db.collection('appointments').doc(editingAppointmentId).update(appointmentData);
+                    console.log('Appointment updated:', editingAppointmentId);
                 } else {
-                    await db.collection('appointments').add(appointmentData);
+                    const docRef = await db.collection('appointments').add(appointmentData);
+                    console.log('Appointment created:', docRef.id);
                 }
                 
                 await loadAppointments();
+                console.log('Appointments reloaded. Total:', appointments.length);
                 closeAppointmentModal();
-                renderCalendar();
+                
+                // Refresh calendar if it's open
+                const calendarModal = document.getElementById('calendarModal');
+                if (calendarModal && !calendarModal.classList.contains('hidden')) {
+                    renderCalendar();
+                }
                 
                 // Send WhatsApp reminder if checked
                 if (appointmentData.reminder && appointmentData.phone) {
@@ -1363,7 +1379,7 @@
                 alert('הפגישה נשמרה בהצלחה!');
             } catch (error) {
                 console.error('Error saving appointment:', error);
-                alert('שגיאה בשמירת הפגישה');
+                alert('שגיאה בשמירת הפגישה: ' + error.message);
             }
         });
 
