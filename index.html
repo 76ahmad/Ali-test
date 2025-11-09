@@ -287,61 +287,97 @@
 
     <!-- Appointment Modal -->
     <div id="appointmentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full">
+        <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="bg-purple-600 text-white p-6 rounded-t-lg">
                 <h2 class="text-2xl font-bold">📅 פגישה חדשה</h2>
             </div>
             
-            <form id="appointmentForm" class="p-6">
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-bold mb-2">רכב</label>
-                    <select id="appointmentCar" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
-                        <option value="">בחר רכב...</option>
-                    </select>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                <!-- Left side - Form -->
+                <div>
+                    <form id="appointmentForm">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-bold mb-2">רכב</label>
+                            <select id="appointmentCar" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                                <option value="">בחר רכב...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-bold mb-2">תאריך</label>
+                            <input type="date" id="appointmentDate" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-bold mb-2">שעה (24 שעות)</label>
+                            <input type="time" id="appointmentTime" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-bold mb-2">סוג הפגישה</label>
+                            <select id="appointmentType" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                                <option value="">בחר סוג...</option>
+                                <option value="שירות">שירות / טיפול</option>
+                                <option value="תיקון">תיקון</option>
+                                <option value="בדיקה">בדיקה תקופתית</option>
+                                <option value="אחר">אחר</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-bold mb-2">הערות</label>
+                            <textarea id="appointmentNotes" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500" placeholder="הערות נוספות..."></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="appointmentReminder" class="ml-2">
+                                <span class="text-gray-700">שלח תזכורת ווטסאפ ללקוח</span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
+                                שמור פגישה
+                            </button>
+                            <button type="button" onclick="closeAppointmentModal()" class="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500">
+                                ביטול
+                            </button>
+                        </div>
+                    </form>
                 </div>
                 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-bold mb-2">תאריך</label>
-                    <input type="date" id="appointmentDate" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                <!-- Right side - Mini Calendar -->
+                <div class="border-r pr-6">
+                    <h3 class="text-lg font-bold mb-4 text-center">פגישות קיימות</h3>
+                    
+                    <!-- Mini Calendar Navigation -->
+                    <div class="flex justify-between items-center mb-4">
+                        <button type="button" onclick="previousMonthMini()" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+                            ←
+                        </button>
+                        <h4 class="font-bold" id="miniMonthYear"></h4>
+                        <button type="button" onclick="nextMonthMini()" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+                            →
+                        </button>
+                    </div>
+                    
+                    <!-- Mini Calendar Grid -->
+                    <div class="grid grid-cols-7 gap-1 mb-2">
+                        <div class="text-center text-xs font-bold p-1">א׳</div>
+                        <div class="text-center text-xs font-bold p-1">ב׳</div>
+                        <div class="text-center text-xs font-bold p-1">ג׳</div>
+                        <div class="text-center text-xs font-bold p-1">ד׳</div>
+                        <div class="text-center text-xs font-bold p-1">ה׳</div>
+                        <div class="text-center text-xs font-bold p-1">ו׳</div>
+                        <div class="text-center text-xs font-bold p-1">ש׳</div>
+                    </div>
+                    <div id="miniCalendarGrid" class="grid grid-cols-7 gap-1 mb-4"></div>
+                    
+                    <!-- Selected Day Appointments -->
+                    <div id="miniDayAppointments" class="text-sm max-h-60 overflow-y-auto"></div>
                 </div>
-                
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-bold mb-2">שעה</label>
-                    <input type="time" id="appointmentTime" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-bold mb-2">סוג הפגישה</label>
-                    <select id="appointmentType" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
-                        <option value="">בחר סוג...</option>
-                        <option value="שירות">שירות / טיפול</option>
-                        <option value="תיקון">תיקון</option>
-                        <option value="בדיקה">בדיקה תקופתית</option>
-                        <option value="אחר">אחר</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-bold mb-2">הערות</label>
-                    <textarea id="appointmentNotes" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500" placeholder="הערות נוספות..."></textarea>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="appointmentReminder" class="ml-2">
-                        <span class="text-gray-700">שלח תזכורת ווטסאפ ללקוח</span>
-                    </label>
-                </div>
-                
-                <div class="flex gap-2">
-                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
-                        שמור פגישה
-                    </button>
-                    <button type="button" onclick="closeAppointmentModal()" class="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500">
-                        ביטול
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -371,6 +407,9 @@
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let selectedDate = null;
+        let miniMonth = new Date().getMonth();
+        let miniYear = new Date().getFullYear();
+        let miniSelectedDate = null;
 
         try {
             app = firebase.initializeApp(firebaseConfig);
@@ -1320,8 +1359,14 @@
             // Set default date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('appointmentDate').value = today;
+            miniSelectedDate = today;
+            
+            // Reset mini calendar to current month
+            miniMonth = new Date().getMonth();
+            miniYear = new Date().getFullYear();
             
             document.getElementById('appointmentModal').classList.remove('hidden');
+            renderMiniCalendar();
         }
 
         // Close Appointment Modal
@@ -1329,6 +1374,127 @@
             document.getElementById('appointmentModal').classList.add('hidden');
             editingAppointmentId = null;
         }
+
+        // Previous Month for Mini Calendar
+        function previousMonthMini() {
+            miniMonth--;
+            if (miniMonth < 0) {
+                miniMonth = 11;
+                miniYear--;
+            }
+            renderMiniCalendar();
+        }
+
+        // Next Month for Mini Calendar
+        function nextMonthMini() {
+            miniMonth++;
+            if (miniMonth > 11) {
+                miniMonth = 0;
+                miniYear++;
+            }
+            renderMiniCalendar();
+        }
+
+        // Render Mini Calendar
+        function renderMiniCalendar() {
+            const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            document.getElementById('miniMonthYear').textContent = `${monthNames[miniMonth]} ${miniYear}`;
+            
+            const firstDay = new Date(miniYear, miniMonth, 1).getDay();
+            const daysInMonth = new Date(miniYear, miniMonth + 1, 0).getDate();
+            
+            const calendarGrid = document.getElementById('miniCalendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'p-1';
+                calendarGrid.appendChild(emptyCell);
+            }
+            
+            // Add days of month
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${miniYear}-${String(miniMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayAppointments = appointments.filter(apt => apt.date === dateStr);
+                
+                const dayCell = document.createElement('div');
+                
+                // Build class name
+                let className = 'p-1 text-center text-sm border rounded cursor-pointer hover:bg-blue-50';
+                
+                // Today gets purple border
+                if (dateStr === todayStr) {
+                    className += ' border-purple-500 bg-purple-50';
+                }
+                
+                // Has appointments - show red dot
+                if (dayAppointments.length > 0) {
+                    className += ' font-bold text-red-600';
+                }
+                
+                // Selected date
+                if (dateStr === miniSelectedDate) {
+                    className += ' bg-blue-200';
+                }
+                
+                dayCell.className = className;
+                dayCell.onclick = () => selectMiniDate(dateStr);
+                
+                dayCell.innerHTML = `<div>${day}</div>`;
+                
+                calendarGrid.appendChild(dayCell);
+            }
+            
+            // Show appointments for selected date
+            showMiniDayAppointments();
+        }
+
+        // Select date in mini calendar
+        function selectMiniDate(dateStr) {
+            miniSelectedDate = dateStr;
+            document.getElementById('appointmentDate').value = dateStr;
+            renderMiniCalendar();
+        }
+
+        // Show appointments for selected day in mini calendar
+        function showMiniDayAppointments() {
+            const container = document.getElementById('miniDayAppointments');
+            
+            if (!miniSelectedDate) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-2">בחר תאריך</p>';
+                return;
+            }
+            
+            const date = new Date(miniSelectedDate);
+            const dateFormatted = date.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' });
+            
+            const dayAppointments = appointments.filter(apt => apt.date === miniSelectedDate).sort((a, b) => a.time.localeCompare(b.time));
+            
+            if (dayAppointments.length === 0) {
+                container.innerHTML = `<p class="text-green-600 text-center py-2">✓ ${dateFormatted} - ללא פגישות</p>`;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="font-bold mb-2 text-red-600">⚠️ פגישות ב-${dateFormatted}:</div>
+                ${dayAppointments.map(apt => `
+                    <div class="border-r-4 border-red-500 bg-red-50 p-2 mb-2 rounded">
+                        <div class="font-bold">${apt.time} - ${apt.plateNumber}</div>
+                        <div class="text-xs text-gray-600">${apt.type}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // Listen to date changes in appointment form
+        document.getElementById('appointmentDate').addEventListener('change', (e) => {
+            miniSelectedDate = e.target.value;
+            renderMiniCalendar();
+        });
 
         // Save Appointment
         document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
