@@ -997,10 +997,16 @@
                     ${car.imageUrl ? `
                         <div class="relative">
                             <img src="${car.imageUrl}" class="w-full max-h-64 object-contain rounded border">
-                            <button onclick="changeCarImage('${carId}')" 
-                                    class="absolute top-2 left-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 shadow-lg flex items-center gap-2">
-                                📷 שנה תמונה
-                            </button>
+                            <div class="absolute top-2 left-2 flex gap-2">
+                                <button onclick="changeCarImage('${carId}')" 
+                                        class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 shadow-lg flex items-center gap-2">
+                                    📷 שנה תמונה
+                                </button>
+                                <button onclick="deleteCarImage('${carId}')" 
+                                        class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 shadow-lg flex items-center gap-2">
+                                    🗑️ מחק תמונה
+                                </button>
+                            </div>
                         </div>
                     ` : `
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
@@ -1249,9 +1255,16 @@
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
+            input.capture = 'environment'; // Enable camera on mobile
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
+                
+                // Check if it's an image
+                if (!file.type.startsWith('image/')) {
+                    alert('אנא בחר קובץ תמונה בלבד');
+                    return;
+                }
                 
                 // Check file size (max 30MB)
                 if (file.size > 30 * 1024 * 1024) {
@@ -1262,6 +1275,7 @@
                 try {
                     // Show loading
                     const loadingMsg = document.createElement('div');
+                    loadingMsg.id = 'imageLoadingMsg';
                     loadingMsg.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
                     loadingMsg.textContent = '📷 מעלה תמונה...';
                     document.body.appendChild(loadingMsg);
@@ -1279,7 +1293,8 @@
                             });
                             
                             // Remove loading message
-                            document.body.removeChild(loadingMsg);
+                            const msg = document.getElementById('imageLoadingMsg');
+                            if (msg) document.body.removeChild(msg);
                             
                             // Show success
                             alert('✅ התמונה עודכנה בהצלחה!');
@@ -1289,11 +1304,19 @@
                             openCarDetails(carId);
                             
                         } catch (error) {
-                            document.body.removeChild(loadingMsg);
+                            const msg = document.getElementById('imageLoadingMsg');
+                            if (msg) document.body.removeChild(msg);
                             console.error('Error updating image:', error);
                             alert('שגיאה בעדכון התמונה');
                         }
                     };
+                    
+                    reader.onerror = () => {
+                        const msg = document.getElementById('imageLoadingMsg');
+                        if (msg) document.body.removeChild(msg);
+                        alert('שגיאה בקריאת הקובץ');
+                    };
+                    
                     reader.readAsDataURL(file);
                     
                 } catch (error) {
@@ -1302,6 +1325,26 @@
                 }
             };
             input.click();
+        }
+
+        // Delete Car Image
+        async function deleteCarImage(carId) {
+            if (!confirm('האם למחוק את התמונה?')) return;
+            
+            try {
+                await db.collection('cars').doc(carId).update({
+                    imageUrl: firebase.firestore.FieldValue.delete(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert('✅ התמונה נמחקה בהצלחה!');
+                await loadCars();
+                openCarDetails(carId);
+                
+            } catch (error) {
+                console.error('Error deleting image:', error);
+                alert('שגיאה במחיקת התמונה');
+            }
         }
 
         // Open Maintenance Modal
