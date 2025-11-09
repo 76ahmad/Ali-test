@@ -162,9 +162,14 @@
     </div>
 
     <!-- Maintenance Modal -->
-    <div id="maintenanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
-            <h2 class="text-xl font-bold mb-4">הוסף טיפול</h2>
+    <div id="maintenanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white pb-2 mb-4 border-b">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold">הוסף טיפול</h2>
+                    <button type="button" onclick="closeMaintenanceModal()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
+                </div>
+            </div>
             
             <form id="maintenanceForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -206,7 +211,7 @@
                     <p class="text-xs text-gray-500 mt-1">ניתן לבחור מספר תמונות</p>
                 </div>
                 
-                <div class="flex gap-2">
+                <div class="flex gap-2 mt-4">
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         שמור טיפול
                     </button>
