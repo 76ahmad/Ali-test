@@ -1439,7 +1439,23 @@
                 const dayAppointments = appointments.filter(apt => apt.date === dateStr);
                 
                 const dayCell = document.createElement('div');
-                dayCell.className = `p-2 border rounded cursor-pointer hover:bg-purple-50 ${dateStr === todayStr ? 'bg-blue-100 border-blue-500' : ''}`;
+                
+                // Build class name based on conditions
+                let className = 'p-2 border rounded cursor-pointer hover:bg-purple-50';
+                
+                // Today gets blue border
+                if (dateStr === todayStr) {
+                    className += ' border-blue-500 border-2';
+                }
+                
+                // Selected date gets purple background
+                if (dateStr === selectedDate) {
+                    className += ' bg-purple-200';
+                } else if (dateStr === todayStr) {
+                    className += ' bg-blue-50';
+                }
+                
+                dayCell.className = className;
                 dayCell.onclick = () => selectDate(dateStr);
                 
                 dayCell.innerHTML = `
@@ -1450,42 +1466,45 @@
                 calendarGrid.appendChild(dayCell);
             }
             
-            // Show today's appointments by default
-            selectDate(todayStr);
+            // Show selected date or today's appointments by default
+            if (!selectedDate) {
+                selectDate(todayStr);
+            } else {
+                // Just update the display without changing selectedDate
+                const date = new Date(selectedDate);
+                const dateFormatted = date.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                document.getElementById('selectedDayTitle').textContent = `פגישות ליום ${dateFormatted}`;
+                
+                const dayAppointments = appointments.filter(apt => apt.date === selectedDate).sort((a, b) => a.time.localeCompare(b.time));
+                const container = document.getElementById('dayAppointments');
+                
+                if (dayAppointments.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-4">אין פגישות מתוכננות ליום זה</p>';
+                } else {
+                    container.innerHTML = dayAppointments.map(apt => `
+                        <div class="border rounded-lg p-4 mb-3 bg-gray-50">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <div class="font-bold text-lg">${apt.time} - ${apt.type}</div>
+                                    <div class="text-gray-700">🚗 ${apt.plateNumber} - ${apt.ownerName}</div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editAppointment('${apt.id}')" class="text-blue-600 hover:text-blue-800">✏️</button>
+                                    <button onclick="deleteAppointment('${apt.id}')" class="text-red-600 hover:text-red-800">🗑️</button>
+                                </div>
+                            </div>
+                            ${apt.notes ? `<div class="text-sm text-gray-600 mt-2">📝 ${apt.notes}</div>` : ''}
+                            ${apt.phone ? `<button onclick="sendAppointmentReminder(${JSON.stringify(apt).replace(/"/g, '&quot;')})" class="mt-2 text-sm text-green-600 hover:text-green-800">📱 שלח תזכורת ווטסאפ</button>` : ''}
+                        </div>
+                    `).join('');
+                }
+            }
         }
 
         // Select Date
         function selectDate(dateStr) {
             selectedDate = dateStr;
-            const date = new Date(dateStr);
-            const dateFormatted = date.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
-            document.getElementById('selectedDayTitle').textContent = `פגישות ליום ${dateFormatted}`;
-            
-            const dayAppointments = appointments.filter(apt => apt.date === dateStr).sort((a, b) => a.time.localeCompare(b.time));
-            const container = document.getElementById('dayAppointments');
-            
-            if (dayAppointments.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center py-4">אין פגישות מתוכננות ליום זה</p>';
-                return;
-            }
-            
-            container.innerHTML = dayAppointments.map(apt => `
-                <div class="border rounded-lg p-4 mb-3 bg-gray-50">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="font-bold text-lg">${apt.time} - ${apt.type}</div>
-                            <div class="text-gray-700">🚗 ${apt.plateNumber} - ${apt.ownerName}</div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="editAppointment('${apt.id}')" class="text-blue-600 hover:text-blue-800">✏️</button>
-                            <button onclick="deleteAppointment('${apt.id}')" class="text-red-600 hover:text-red-800">🗑️</button>
-                        </div>
-                    </div>
-                    ${apt.notes ? `<div class="text-sm text-gray-600 mt-2">📝 ${apt.notes}</div>` : ''}
-                    ${apt.phone ? `<button onclick="sendAppointmentReminder(${JSON.stringify(apt).replace(/"/g, '&quot;')})" class="mt-2 text-sm text-green-600 hover:text-green-800">📱 שלח תזכורת ווטסאפ</button>` : ''}
-                </div>
-            `).join('');
+            renderCalendar(); // Re-render to update the purple highlight
         }
 
         // Edit Appointment
