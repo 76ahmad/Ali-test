@@ -1477,10 +1477,17 @@
                     immobilizerCode: document.getElementById('immobilizerCode').value.trim(),
                     engineType: document.getElementById('engineType').value.trim(),
                     enginePower: document.getElementById('enginePower').value.trim(),
-                    carStatus: document.getElementById('carStatus').value || 'waiting',
                     userId: currentUser.uid,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
+                
+                // Only add carStatus if editing existing car that has status
+                if (editingCarId) {
+                    const existingCar = cars.find(c => c.id === editingCarId);
+                    if (existingCar && existingCar.carStatus) {
+                        carData.carStatus = existingCar.carStatus;
+                    }
+                }
                 
                 const imageFile = document.getElementById('carImage').files[0];
                 if (imageFile) {
@@ -2641,8 +2648,9 @@
                     delete cars[carIndex].carStatus;
                 }
                 
+                // Update dashboard display
                 renderDashboard();
-                await loadCars(); // Reload to update main grid
+                
                 showNotification('הרכב הוסר מלוח הבקרה');
                 
             } catch (error) {
@@ -2666,7 +2674,9 @@
                     cars[carIndex].carStatus = 'waiting';
                 }
                 
-                await loadCars(); // Reload to update main grid
+                // Reload the main grid to show updated status
+                displayCars();
+                
                 showNotification('הרכב נוסף ללוח הבקרה');
                 
             } catch (error) {
