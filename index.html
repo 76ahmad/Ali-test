@@ -1138,6 +1138,52 @@
                 `).join('');
             }
         });
+
+        // ==========================================
+        // Browser Back Button Support for Mobile
+        // ==========================================
+        
+        // Handle browser back button
+        window.addEventListener('popstate', function(event) {
+            const carModal = document.getElementById('carModal');
+            const detailsModal = document.getElementById('detailsModal');
+            const maintenanceModal = document.getElementById('maintenanceModal');
+            
+            // Close any open modal when back button is pressed
+            if (carModal && !carModal.classList.contains('hidden')) {
+                closeCarModal();
+            } else if (maintenanceModal && !maintenanceModal.classList.contains('hidden')) {
+                closeMaintenanceModal();
+            } else if (detailsModal && !detailsModal.classList.contains('hidden')) {
+                closeDetailsModal();
+            }
+        });
+
+        // Wrap modal open functions to add history state
+        (function() {
+            // Save original functions
+            const _openCarModal = window.openCarModal;
+            const _openDetailsModal = window.openDetailsModal;
+            const _openMaintenanceModal = window.openMaintenanceModal;
+            
+            // Override openCarModal
+            window.openCarModal = function() {
+                _openCarModal();
+                history.pushState({ modal: 'car' }, '', '');
+            };
+            
+            // Override openDetailsModal
+            window.openDetailsModal = function(carId) {
+                _openDetailsModal(carId);
+                history.pushState({ modal: 'details' }, '', '');
+            };
+            
+            // Override openMaintenanceModal
+            window.openMaintenanceModal = function() {
+                _openMaintenanceModal();
+                history.pushState({ modal: 'maintenance' }, '', '');
+            };
+        })();
     </script>
 
 </body>
