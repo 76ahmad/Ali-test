@@ -2596,7 +2596,9 @@
                     cars[carIndex].carStatus = newStatus;
                 }
                 
+                // Update both dashboard and main grid
                 renderDashboard();
+                displayCars();
                 
                 // Show notification
                 const statusNames = {
@@ -2642,14 +2644,18 @@
                     statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Update local cars array
+                // Update local cars array properly
                 const carIndex = cars.findIndex(c => c.id === carId);
                 if (carIndex !== -1) {
-                    delete cars[carIndex].carStatus;
+                    // Create new object without carStatus
+                    const updatedCar = { ...cars[carIndex] };
+                    delete updatedCar.carStatus;
+                    cars[carIndex] = updatedCar;
                 }
                 
-                // Update dashboard display
+                // Update both dashboard and main grid
                 renderDashboard();
+                displayCars();
                 
                 showNotification('הרכב הוסר מלוח הבקרה');
                 
