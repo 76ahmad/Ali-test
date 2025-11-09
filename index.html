@@ -450,7 +450,7 @@
                 <div class="bg-white rounded-lg shadow p-4 car-card" data-search="${car.plateNumber} ${car.ownerName || ''}">
                     ${car.imageUrl ? 
                         `<img src="${car.imageUrl}" class="w-full h-40 object-cover rounded mb-3 cursor-pointer" onclick="viewCarDetails('${car.id}')">` : 
-                        '<div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-400 cursor-pointer" onclick="viewCarDetails(\'${car.id}\')">אין תמונה</div>'
+                        `<div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-400 cursor-pointer" onclick="viewCarDetails('${car.id}')">אין תמונה</div>`
                     }
                     <h3 class="font-bold text-lg cursor-pointer hover:text-blue-600" onclick="viewCarDetails('${car.id}')">${car.plateNumber}</h3>
                     ${car.ownerName ? `<p class="text-gray-600">${car.ownerName}</p>` : ''}
@@ -461,8 +461,8 @@
                     
                     <div class="mt-3 flex gap-2 flex-wrap">
                         <button onclick="viewCarDetails('${car.id}')" class="text-green-600 hover:underline text-sm">📋 פרטים</button>
-                        <button onclick="editCar('${car.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
-                        <button onclick="deleteCar('${car.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
+                        <button onclick="event.stopPropagation(); editCar('${car.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
+                        <button onclick="event.stopPropagation(); deleteCar('${car.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
                     </div>
                 </div>
             `).join('');
@@ -696,13 +696,15 @@
 
         // Open Maintenance Modal
         function openMaintenanceModal() {
-            if (!currentCarId) return;
+            if (!currentCarId) {
+                alert('אנא בחר רכב תחילה');
+                return;
+            }
             
             editingMaintenanceId = null;
             maintenanceImages = [];
             document.getElementById('maintenanceForm').reset();
             document.getElementById('maintenanceImagesPreview').innerHTML = '';
-            document.getElementById('totalCostDisplay').textContent = '0';
             document.getElementById('maintenanceModal').classList.remove('hidden');
         }
 
