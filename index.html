@@ -1441,18 +1441,21 @@
                 const dayCell = document.createElement('div');
                 
                 // Build class name based on conditions
-                let className = 'p-2 border rounded cursor-pointer hover:bg-purple-50';
+                let className = 'p-2 border rounded cursor-pointer hover:bg-blue-50';
                 
-                // Today gets blue border
+                // Today gets purple border and background
                 if (dateStr === todayStr) {
-                    className += ' border-blue-500 border-2';
+                    className += ' border-purple-500 border-2 bg-purple-50';
                 }
                 
-                // Selected date gets purple background
-                if (dateStr === selectedDate) {
-                    className += ' bg-purple-200';
-                } else if (dateStr === todayStr) {
-                    className += ' bg-blue-50';
+                // Selected date gets blue background
+                if (dateStr === selectedDate && dateStr !== todayStr) {
+                    className += ' bg-blue-200';
+                }
+                
+                // If selected date is today, show both (purple border + blue background)
+                if (dateStr === selectedDate && dateStr === todayStr) {
+                    className += ' bg-blue-200';
                 }
                 
                 dayCell.className = className;
