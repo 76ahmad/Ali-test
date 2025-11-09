@@ -1301,7 +1301,7 @@
                             
                             // Reload car details
                             await loadCars();
-                            openCarDetails(carId);
+                            viewCarDetails(carId);
                             
                         } catch (error) {
                             const msg = document.getElementById('imageLoadingMsg');
@@ -1339,7 +1339,7 @@
                 
                 alert('✅ התמונה נמחקה בהצלחה!');
                 await loadCars();
-                openCarDetails(carId);
+                viewCarDetails(carId);
                 
             } catch (error) {
                 console.error('Error deleting image:', error);
