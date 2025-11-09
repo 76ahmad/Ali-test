@@ -27,6 +27,18 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-waiting { background: #fef3c7; color: #92400e; }
+        .status-working { background: #dbeafe; color: #1e40af; }
+        .status-done { background: #d1fae5; color: #065f46; }
     </style>
 
 </head>
@@ -107,8 +119,8 @@
     </div>
 
     <!-- Car Modal -->
-    <div id="carModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div id="carModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full my-8">
             <h2 id="modalTitle" class="text-xl font-bold mb-4">הוסף רכב</h2>
             
             <form id="carForm">
@@ -118,8 +130,8 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label class="block text-gray-700 mb-1">שם הבעלים *</label>
-                    <input type="text" id="ownerName" required class="w-full px-3 py-2 border rounded">
+                    <label class="block text-gray-700 mb-1">שם הבעלים</label>
+                    <input type="text" id="ownerName" class="w-full px-3 py-2 border rounded">
                 </div>
                 
                 <div class="mb-3">
@@ -146,8 +158,7 @@
                     <label class="block text-gray-700 mb-1">תמונה</label>
                     <input type="file" id="carImage" accept="image/*" class="w-full">
                     <div id="imagePreview" class="mt-2"></div>
-                    <p class="text-xs text-green-600 mt-1">✓ דחיסה אוטומטית - התמונה תידחס אוטומטית!</p>
-                    <p class="text-xs text-gray-500">כל גודל מתאים - הדחיסה אוטומטית</p>
+                    <p class="text-xs text-green-600 mt-1">✓ דחיסה אוטומטית</p>
                 </div>
                 
                 <div class="flex gap-2">
@@ -159,6 +170,111 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Maintenance Modal -->
+    <div id="maintenanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
+            <h2 class="text-xl font-bold mb-4">הוסף טיפול</h2>
+            
+            <form id="maintenanceForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 mb-1">תאריך כניסה</label>
+                        <input type="date" id="entryDate" class="w-full px-3 py-2 border rounded">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 mb-1">תאריך יציאה</label>
+                        <input type="date" id="exitDate" class="w-full px-3 py-2 border rounded">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1">סטטוס</label>
+                    <select id="status" class="w-full px-3 py-2 border rounded">
+                        <option value="waiting">ממתין</option>
+                        <option value="working">בעבודה</option>
+                        <option value="done">הושלם</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1">תיאור העבודה</label>
+                    <textarea id="workDescription" rows="3" class="w-full px-3 py-2 border rounded" placeholder="מה נעשה ברכב? (אופציונלי)"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1">חלקי חילוף</label>
+                    <textarea id="parts" rows="2" class="w-full px-3 py-2 border rounded" placeholder="רשימת חלקים (אופציונלי)"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 mb-1">עלות חלקים (₪)</label>
+                        <input type="number" id="partsCost" class="w-full px-3 py-2 border rounded" placeholder="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-gray-700 mb-1">עלות עבודה (₪)</label>
+                        <input type="number" id="laborCost" class="w-full px-3 py-2 border rounded" placeholder="0">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1">עלות נוספת (₪)</label>
+                    <input type="number" id="otherCost" class="w-full px-3 py-2 border rounded" placeholder="0">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1 font-bold">עלות כוללת: <span id="totalCostDisplay">0</span> ₪</label>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1">הערות</label>
+                    <textarea id="notes" rows="2" class="w-full px-3 py-2 border rounded" placeholder="הערות נוספות (אופציונלי)"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-700 mb-1">תמונות</label>
+                    <input type="file" id="maintenanceImages" accept="image/*" multiple class="w-full">
+                    <div id="maintenanceImagesPreview" class="mt-2 grid grid-cols-3 gap-2"></div>
+                    <p class="text-xs text-gray-500 mt-1">ניתן לבחור מספר תמונות</p>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        שמור טיפול
+                    </button>
+                    <button type="button" onclick="closeMaintenanceModal()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+                        ביטול
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Car Details Modal -->
+    <div id="carDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full my-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold" id="detailsPlateNumber"></h2>
+                <button onclick="closeCarDetailsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            
+            <div id="carDetailsContent"></div>
+            
+            <div class="mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">היסטוריית טיפולים</h3>
+                    <button onclick="openMaintenanceModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        + הוסף טיפול
+                    </button>
+                </div>
+                
+                <div id="maintenanceHistory" class="space-y-4"></div>
+            </div>
         </div>
     </div>
 
@@ -179,20 +295,23 @@
         let currentUser = null;
         let cars = [];
         let editingCarId = null;
+        let currentCarId = null;
+        let editingMaintenanceId = null;
         let isRegisterMode = false;
+        let maintenanceImages = [];
 
         try {
             app = firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             auth = firebase.auth();
-            console.log('Firebase initialized - Auto compression enabled!');
+            console.log('Firebase initialized with maintenance system!');
         } catch (error) {
             console.error('Firebase initialization error:', error);
             document.getElementById('loadingScreen').innerHTML = 
                 '<div class="text-center"><p class="text-red-600">שגיאה בטעינת המערכת</p></div>';
         }
 
-        // Compress Image Function - AUTOMATIC!
+        // Compress Image Function
         async function compressImage(file, maxSizeKB = 700) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -205,8 +324,7 @@
                         let width = img.width;
                         let height = img.height;
                         
-                        // Calculate new dimensions to keep under size limit
-                        const maxDimension = 1200; // Max width/height
+                        const maxDimension = 1200;
                         if (width > height && width > maxDimension) {
                             height = (height * maxDimension) / width;
                             width = maxDimension;
@@ -221,11 +339,9 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        // Start with quality 0.8 and reduce if needed
                         let quality = 0.8;
                         let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
                         
-                        // Keep reducing quality until size is acceptable
                         while (compressedDataUrl.length > maxSizeKB * 1024 * 1.37 && quality > 0.1) {
                             quality -= 0.1;
                             compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
@@ -237,6 +353,16 @@
                 };
                 reader.onerror = reject;
             });
+        }
+
+        // Calculate Total Cost
+        function calculateTotalCost() {
+            const partsCost = parseFloat(document.getElementById('partsCost').value) || 0;
+            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+            const otherCost = parseFloat(document.getElementById('otherCost').value) || 0;
+            const total = partsCost + laborCost + otherCost;
+            document.getElementById('totalCostDisplay').textContent = total.toFixed(2);
+            return total;
         }
 
         // Auth State Observer
@@ -351,24 +477,132 @@
             emptyState.classList.add('hidden');
             
             grid.innerHTML = cars.map(car => `
-                <div class="bg-white rounded-lg shadow p-4 car-card" data-search="${car.plateNumber} ${car.ownerName}">
+                <div class="bg-white rounded-lg shadow p-4 car-card" data-search="${car.plateNumber} ${car.ownerName || ''}">
                     ${car.imageUrl ? 
-                        `<img src="${car.imageUrl}" class="w-full h-40 object-cover rounded mb-3">` : 
-                        '<div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-400">אין תמונה</div>'
+                        `<img src="${car.imageUrl}" class="w-full h-40 object-cover rounded mb-3 cursor-pointer" onclick="viewCarDetails('${car.id}')">` : 
+                        '<div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-400 cursor-pointer" onclick="viewCarDetails(\'${car.id}\')">אין תמונה</div>'
                     }
-                    <h3 class="font-bold text-lg">${car.plateNumber}</h3>
-                    <p class="text-gray-600">${car.ownerName}</p>
+                    <h3 class="font-bold text-lg cursor-pointer hover:text-blue-600" onclick="viewCarDetails('${car.id}')">${car.plateNumber}</h3>
+                    ${car.ownerName ? `<p class="text-gray-600">${car.ownerName}</p>` : ''}
                     ${car.phone ? `<p class="text-sm">📞 ${car.phone}</p>` : ''}
                     ${car.carType ? `<p class="text-sm">🚗 ${car.carType}</p>` : ''}
                     ${car.model ? `<p class="text-sm">📋 ${car.model}</p>` : ''}
                     ${car.year ? `<p class="text-sm">📅 ${car.year}</p>` : ''}
                     
-                    <div class="mt-3 flex gap-2">
-                        <button onclick="editCar('${car.id}')" class="text-blue-600 hover:underline">עריכה</button>
-                        <button onclick="deleteCar('${car.id}')" class="text-red-600 hover:underline">מחיקה</button>
+                    <div class="mt-3 flex gap-2 flex-wrap">
+                        <button onclick="viewCarDetails('${car.id}')" class="text-green-600 hover:underline text-sm">📋 פרטים</button>
+                        <button onclick="editCar('${car.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
+                        <button onclick="deleteCar('${car.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
                     </div>
                 </div>
             `).join('');
+        }
+
+        // View Car Details
+        async function viewCarDetails(carId) {
+            currentCarId = carId;
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+            
+            // Display car details
+            document.getElementById('detailsPlateNumber').textContent = car.plateNumber;
+            document.getElementById('carDetailsContent').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    ${car.imageUrl ? `
+                        <div class="col-span-2">
+                            <img src="${car.imageUrl}" class="w-full max-h-64 object-contain rounded">
+                        </div>
+                    ` : ''}
+                    ${car.ownerName ? `<div><span class="font-bold">שם הבעלים:</span> ${car.ownerName}</div>` : ''}
+                    ${car.phone ? `<div><span class="font-bold">טלפון:</span> ${car.phone}</div>` : ''}
+                    ${car.carType ? `<div><span class="font-bold">סוג רכב:</span> ${car.carType}</div>` : ''}
+                    ${car.model ? `<div><span class="font-bold">דגם:</span> ${car.model}</div>` : ''}
+                    ${car.year ? `<div><span class="font-bold">שנה:</span> ${car.year}</div>` : ''}
+                </div>
+            `;
+            
+            // Load maintenance history
+            await loadMaintenanceHistory(carId);
+            
+            document.getElementById('carDetailsModal').classList.remove('hidden');
+        }
+
+        // Load Maintenance History
+        async function loadMaintenanceHistory(carId) {
+            try {
+                const snapshot = await db.collection('maintenance')
+                    .where('carId', '==', carId)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                const maintenanceList = [];
+                snapshot.forEach(doc => {
+                    maintenanceList.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const historyDiv = document.getElementById('maintenanceHistory');
+                
+                if (maintenanceList.length === 0) {
+                    historyDiv.innerHTML = '<p class="text-gray-500 text-center py-4">אין טיפולים עדיין</p>';
+                    return;
+                }
+                
+                historyDiv.innerHTML = maintenanceList.map(m => {
+                    const totalCost = (m.partsCost || 0) + (m.laborCost || 0) + (m.otherCost || 0);
+                    const statusClass = m.status === 'waiting' ? 'status-waiting' : 
+                                      m.status === 'working' ? 'status-working' : 'status-done';
+                    const statusText = m.status === 'waiting' ? 'ממתין' : 
+                                     m.status === 'working' ? 'בעבודה' : 'הושלם';
+                    
+                    return `
+                        <div class="border rounded-lg p-4 bg-gray-50">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                                <div class="flex gap-2">
+                                    <button onclick="editMaintenance('${m.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
+                                    <button onclick="deleteMaintenance('${m.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
+                                </div>
+                            </div>
+                            
+                            ${m.entryDate || m.exitDate ? `
+                                <div class="text-sm mb-2">
+                                    ${m.entryDate ? `<span>📅 כניסה: ${m.entryDate}</span>` : ''}
+                                    ${m.exitDate ? `<span class="mr-4">📤 יציאה: ${m.exitDate}</span>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${m.workDescription ? `<p class="mb-2"><strong>עבודה:</strong> ${m.workDescription}</p>` : ''}
+                            ${m.parts ? `<p class="mb-2"><strong>חלקים:</strong> ${m.parts}</p>` : ''}
+                            
+                            ${totalCost > 0 ? `
+                                <div class="text-sm mb-2">
+                                    <strong>עלות כוללת: ${totalCost.toFixed(2)} ₪</strong>
+                                    ${m.partsCost ? ` (חלקים: ${m.partsCost.toFixed(2)} ₪)` : ''}
+                                    ${m.laborCost ? ` (עבודה: ${m.laborCost.toFixed(2)} ₪)` : ''}
+                                    ${m.otherCost ? ` (אחר: ${m.otherCost.toFixed(2)} ₪)` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${m.notes ? `<p class="text-sm text-gray-600 mb-2"><strong>הערות:</strong> ${m.notes}</p>` : ''}
+                            
+                            ${m.images && m.images.length > 0 ? `
+                                <div class="grid grid-cols-3 gap-2 mt-2">
+                                    ${m.images.map(img => `<img src="${img}" class="w-full h-24 object-cover rounded cursor-pointer" onclick="window.open('${img}')">`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading maintenance:', error);
+            }
+        }
+
+        // Close Car Details Modal
+        function closeCarDetailsModal() {
+            document.getElementById('carDetailsModal').classList.add('hidden');
+            currentCarId = null;
         }
 
         // Open Car Modal
@@ -408,7 +642,7 @@
             document.getElementById('carModal').classList.remove('hidden');
         }
 
-        // Car Form Submit - WITH AUTO COMPRESSION!
+        // Car Form Submit
         document.getElementById('carForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -429,18 +663,13 @@
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                // Handle image with AUTO COMPRESSION
                 const imageFile = document.getElementById('carImage').files[0];
                 if (imageFile) {
                     try {
                         submitBtn.textContent = 'דוחס תמונה...';
-                        
-                        // Compress image automatically!
                         const compressedImage = await compressImage(imageFile, 700);
                         carData.imageUrl = compressedImage;
-                        
                         submitBtn.textContent = 'שומר נתונים...';
-                        
                     } catch (imageError) {
                         console.error('Image compression error:', imageError);
                         alert('שגיאה בעיבוד התמונה. אנא נסה שוב.');
@@ -449,14 +678,12 @@
                         return;
                     }
                 } else if (editingCarId) {
-                    // Keep existing image when editing
                     const existingCar = cars.find(c => c.id === editingCarId);
                     if (existingCar && existingCar.imageUrl) {
                         carData.imageUrl = existingCar.imageUrl;
                     }
                 }
                 
-                // Save to Firestore
                 if (editingCarId) {
                     await db.collection('cars').doc(editingCarId).update(carData);
                     alert('הרכב עודכן בהצלחה!');
@@ -466,7 +693,6 @@
                     alert('הרכב נוסף בהצלחה!');
                 }
                 
-                // Reset form
                 document.getElementById('carForm').reset();
                 document.getElementById('imagePreview').innerHTML = '';
                 closeCarModal();
@@ -483,9 +709,21 @@
 
         // Delete Car
         async function deleteCar(carId) {
-            if (!confirm('האם למחוק את הרכב?')) return;
+            if (!confirm('האם למחוק את הרכב? גם כל הטיפולים יימחקו.')) return;
             
             try {
+                // Delete all maintenance records
+                const maintenanceSnapshot = await db.collection('maintenance')
+                    .where('carId', '==', carId)
+                    .get();
+                
+                const deletePromises = [];
+                maintenanceSnapshot.forEach(doc => {
+                    deletePromises.push(doc.ref.delete());
+                });
+                await Promise.all(deletePromises);
+                
+                // Delete car
                 await db.collection('cars').doc(carId).delete();
                 alert('הרכב נמחק בהצלחה');
                 await loadCars();
@@ -494,6 +732,156 @@
                 alert('שגיאה במחיקת הרכב');
             }
         }
+
+        // Open Maintenance Modal
+        function openMaintenanceModal() {
+            if (!currentCarId) return;
+            
+            editingMaintenanceId = null;
+            maintenanceImages = [];
+            document.getElementById('maintenanceForm').reset();
+            document.getElementById('maintenanceImagesPreview').innerHTML = '';
+            document.getElementById('totalCostDisplay').textContent = '0';
+            document.getElementById('maintenanceModal').classList.remove('hidden');
+        }
+
+        // Close Maintenance Modal
+        function closeMaintenanceModal() {
+            document.getElementById('maintenanceModal').classList.add('hidden');
+            editingMaintenanceId = null;
+            maintenanceImages = [];
+        }
+
+        // Edit Maintenance
+        async function editMaintenance(maintenanceId) {
+            try {
+                const doc = await db.collection('maintenance').doc(maintenanceId).get();
+                if (!doc.exists) return;
+                
+                const m = doc.data();
+                editingMaintenanceId = maintenanceId;
+                
+                document.getElementById('entryDate').value = m.entryDate || '';
+                document.getElementById('exitDate').value = m.exitDate || '';
+                document.getElementById('status').value = m.status || 'waiting';
+                document.getElementById('workDescription').value = m.workDescription || '';
+                document.getElementById('parts').value = m.parts || '';
+                document.getElementById('partsCost').value = m.partsCost || '';
+                document.getElementById('laborCost').value = m.laborCost || '';
+                document.getElementById('otherCost').value = m.otherCost || '';
+                document.getElementById('notes').value = m.notes || '';
+                
+                maintenanceImages = m.images || [];
+                
+                if (maintenanceImages.length > 0) {
+                    document.getElementById('maintenanceImagesPreview').innerHTML = 
+                        maintenanceImages.map((img, i) => `
+                            <div class="relative">
+                                <img src="${img}" class="w-full h-24 object-cover rounded">
+                                <button type="button" onclick="removeMaintenanceImage(${i})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 text-xs">×</button>
+                            </div>
+                        `).join('');
+                }
+                
+                calculateTotalCost();
+                document.getElementById('maintenanceModal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error loading maintenance:', error);
+            }
+        }
+
+        // Delete Maintenance
+        async function deleteMaintenance(maintenanceId) {
+            if (!confirm('האם למחוק את הטיפול?')) return;
+            
+            try {
+                await db.collection('maintenance').doc(maintenanceId).delete();
+                alert('הטיפול נמחק בהצלחה');
+                await loadMaintenanceHistory(currentCarId);
+            } catch (error) {
+                console.error('Error deleting maintenance:', error);
+                alert('שגיאה במחיקת הטיפול');
+            }
+        }
+
+        // Remove Maintenance Image
+        function removeMaintenanceImage(index) {
+            maintenanceImages.splice(index, 1);
+            document.getElementById('maintenanceImagesPreview').innerHTML = 
+                maintenanceImages.map((img, i) => `
+                    <div class="relative">
+                        <img src="${img}" class="w-full h-24 object-cover rounded">
+                        <button type="button" onclick="removeMaintenanceImage(${i})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 text-xs">×</button>
+                    </div>
+                `).join('');
+        }
+
+        // Maintenance Form Submit
+        document.getElementById('maintenanceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'שומר...';
+            
+            try {
+                const maintenanceData = {
+                    carId: currentCarId,
+                    userId: currentUser.uid,
+                    entryDate: document.getElementById('entryDate').value,
+                    exitDate: document.getElementById('exitDate').value,
+                    status: document.getElementById('status').value,
+                    workDescription: document.getElementById('workDescription').value,
+                    parts: document.getElementById('parts').value,
+                    partsCost: parseFloat(document.getElementById('partsCost').value) || 0,
+                    laborCost: parseFloat(document.getElementById('laborCost').value) || 0,
+                    otherCost: parseFloat(document.getElementById('otherCost').value) || 0,
+                    notes: document.getElementById('notes').value,
+                    images: maintenanceImages,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Handle new images
+                const imageFiles = document.getElementById('maintenanceImages').files;
+                if (imageFiles.length > 0) {
+                    submitBtn.textContent = 'דוחס תמונות...';
+                    
+                    for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
+                        try {
+                            const compressed = await compressImage(imageFiles[i], 500);
+                            maintenanceImages.push(compressed);
+                        } catch (err) {
+                            console.error('Image compression error:', err);
+                        }
+                    }
+                    
+                    maintenanceData.images = maintenanceImages;
+                }
+                
+                submitBtn.textContent = 'שומר נתונים...';
+                
+                if (editingMaintenanceId) {
+                    await db.collection('maintenance').doc(editingMaintenanceId).update(maintenanceData);
+                    alert('הטיפול עודכן בהצלחה!');
+                } else {
+                    maintenanceData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('maintenance').add(maintenanceData);
+                    alert('הטיפול נוסף בהצלחה!');
+                }
+                
+                closeMaintenanceModal();
+                await loadMaintenanceHistory(currentCarId);
+                
+            } catch (error) {
+                console.error('Error saving maintenance:', error);
+                alert('שגיאה: ' + (error.message || 'לא ניתן לשמור את הנתונים'));
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
 
         // Search Cars
         function searchCars() {
@@ -515,7 +903,7 @@
             
             let csv = 'מספר רישוי,שם בעלים,טלפון,סוג,דגם,שנה\n';
             cars.forEach(car => {
-                csv += `${car.plateNumber},${car.ownerName},${car.phone || ''},${car.carType || ''},${car.model || ''},${car.year || ''}\n`;
+                csv += `${car.plateNumber},${car.ownerName || ''},${car.phone || ''},${car.carType || ''},${car.model || ''},${car.year || ''}\n`;
             });
             
             const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -553,13 +941,12 @@
             }, 5000);
         }
 
-        // Image Preview with compression info
+        // Image Preview
         document.getElementById('carImage').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             const previewDiv = document.getElementById('imagePreview');
             
             if (file) {
-                // Check file type
                 if (!file.type.match(/image\/(jpeg|jpg|png|gif)/)) {
                     alert('פורמט לא נתמך. השתמש ב-JPG או PNG');
                     e.target.value = '';
@@ -567,19 +954,16 @@
                     return;
                 }
                 
-                // Show preview
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                    
-                    // Compress for preview
                     const compressed = await compressImage(file, 700);
                     const compressedSizeKB = (compressed.length / 1024 / 1.37).toFixed(0);
                     
                     previewDiv.innerHTML = `
                         <img src="${compressed}" class="w-32 h-32 object-cover rounded mt-2 border">
-                        <p class="text-xs text-green-600 mt-1">✓ התמונה נדחסה אוטומטית!</p>
-                        <p class="text-xs text-gray-500">גודל מקורי: ${originalSizeMB}MB → דחוס: ${compressedSizeKB}KB</p>
+                        <p class="text-xs text-green-600 mt-1">✓ דחוס אוטומטית</p>
+                        <p class="text-xs text-gray-500">${originalSizeMB}MB → ${compressedSizeKB}KB</p>
                     `;
                 };
                 reader.readAsDataURL(file);
@@ -587,6 +971,36 @@
                 previewDiv.innerHTML = '';
             }
         });
+
+        // Maintenance Images Preview
+        document.getElementById('maintenanceImages').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            const previewDiv = document.getElementById('maintenanceImagesPreview');
+            
+            if (files.length > 0) {
+                const previews = [];
+                for (let i = 0; i < Math.min(files.length, 5); i++) {
+                    const file = files[i];
+                    if (file.type.match(/image\/(jpeg|jpg|png|gif)/)) {
+                        const reader = new FileReader();
+                        const preview = await new Promise((resolve) => {
+                            reader.onload = (e) => resolve(e.target.result);
+                            reader.readAsDataURL(file);
+                        });
+                        previews.push(preview);
+                    }
+                }
+                
+                previewDiv.innerHTML = previews.map((img, i) => `
+                    <img src="${img}" class="w-full h-24 object-cover rounded">
+                `).join('');
+            }
+        });
+
+        // Cost calculation listeners
+        document.getElementById('partsCost').addEventListener('input', calculateTotalCost);
+        document.getElementById('laborCost').addEventListener('input', calculateTotalCost);
+        document.getElementById('otherCost').addEventListener('input', calculateTotalCost);
     </script>
 
 </body>
