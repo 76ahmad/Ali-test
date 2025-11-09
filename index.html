@@ -74,8 +74,17 @@
     <div id="mainApp" class="hidden container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold">מערכת ניהול מוסך</h1>
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-bold">מערכת ניהול מוסך</h1>
+                    <div class="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
+                        <span class="text-gray-600">👤</span>
+                        <span id="userName" class="font-bold text-blue-700">משתמש</span>
+                        <button onclick="editUserName()" class="text-blue-600 hover:text-blue-800" title="ערוך שם">
+                            ✏️
+                        </button>
+                    </div>
+                </div>
                 <button onclick="signOut()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
                     יציאה
                 </button>
@@ -195,6 +204,14 @@
                         <input type="text" id="vinCode" maxlength="17"
                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                                placeholder="17 תווים">
+                    </div>
+                    
+                    <!-- קוד התנעה -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">קוד התנעה (אימוביליזר)</label>
+                        <input type="text" id="immobilizerCode"
+                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                               placeholder="קוד סודי להתנעת הרכב">
                     </div>
                     
                     <!-- סוג מנוע -->
@@ -543,11 +560,12 @@
         }
 
         // Auth State Observer
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
+                await loadUserName();
                 loadCars();
                 loadAppointments();
             } else {
@@ -558,6 +576,48 @@
             
             document.getElementById('loadingScreen').classList.add('hidden');
         });
+
+        // Load User Name
+        async function loadUserName() {
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists && userDoc.data().displayName) {
+                    document.getElementById('userName').textContent = userDoc.data().displayName;
+                } else {
+                    document.getElementById('userName').textContent = currentUser.email.split('@')[0];
+                }
+            } catch (error) {
+                console.error('Error loading user name:', error);
+                document.getElementById('userName').textContent = currentUser.email.split('@')[0];
+            }
+        }
+
+        // Edit User Name
+        function editUserName() {
+            const currentName = document.getElementById('userName').textContent;
+            const newName = prompt('הכנס שם חדש:', currentName);
+            
+            if (newName && newName.trim() !== '' && newName !== currentName) {
+                saveUserName(newName.trim());
+            }
+        }
+
+        // Save User Name
+        async function saveUserName(name) {
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    displayName: name,
+                    email: currentUser.email,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
+                document.getElementById('userName').textContent = name;
+                alert('השם עודכן בהצלחה!');
+            } catch (error) {
+                console.error('Error saving user name:', error);
+                alert('שגיאה בשמירת השם');
+            }
+        }
 
         // Toggle Auth Mode
         document.getElementById('toggleAuth').addEventListener('click', (e) => {
@@ -723,6 +783,7 @@
                     ${car.model ? `<div><span class="font-bold">דגם:</span> ${car.model}</div>` : ''}
                     ${car.year ? `<div><span class="font-bold">שנת ייצור:</span> ${car.year}</div>` : ''}
                     ${car.vinCode ? `<div><span class="font-bold">קוד רכב (VIN):</span> ${car.vinCode}</div>` : ''}
+                    ${car.immobilizerCode ? `<div class="bg-yellow-50 border border-yellow-300 p-2 rounded"><span class="font-bold">🔑 קוד התנעה:</span> <span class="font-mono">${car.immobilizerCode}</span></div>` : ''}
                     ${car.engineType ? `<div><span class="font-bold">סוג מנוע:</span> ${car.engineType}</div>` : ''}
                     ${car.enginePower ? `<div class="col-span-2"><span class="font-bold">הספק מנוע:</span> ${car.enginePower}</div>` : ''}
                 </div>
@@ -834,6 +895,7 @@
             document.getElementById('model').value = car.model || '';
             document.getElementById('year').value = car.year || '';
             document.getElementById('vinCode').value = car.vinCode || '';
+            document.getElementById('immobilizerCode').value = car.immobilizerCode || '';
             document.getElementById('engineType').value = car.engineType || '';
             document.getElementById('enginePower').value = car.enginePower || '';
             
@@ -863,6 +925,7 @@
                     model: document.getElementById('model').value.trim(),
                     year: document.getElementById('year').value.trim(),
                     vinCode: document.getElementById('vinCode').value.trim(),
+                    immobilizerCode: document.getElementById('immobilizerCode').value.trim(),
                     engineType: document.getElementById('engineType').value.trim(),
                     enginePower: document.getElementById('enginePower').value.trim(),
                     userId: currentUser.uid,
