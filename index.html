@@ -1509,10 +1509,15 @@
         // Compress Image Function
         async function compressImage(file, maxSizeKB = 700) {
             return new Promise((resolve, reject) => {
+                // Simple validation
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    reject(new Error('קובץ לא תקין'));
+                    return;
+                }
+                
                 const reader = new FileReader();
                 
                 reader.onerror = () => {
-                    console.error('FileReader error');
                     reject(new Error('שגיאה בקריאת הקובץ'));
                 };
                 
@@ -1520,74 +1525,74 @@
                     const img = new Image();
                     
                     img.onerror = () => {
-                        console.error('Image load error');
-                        reject(new Error('שגיאה בטעינת התמונה'));
+                        reject(new Error('לא ניתן לטעון את התמונה'));
                     };
                     
                     img.onload = () => {
                         try {
+                            // Create canvas
                             const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
+                            let width = img.width || 800;
+                            let height = img.height || 600;
                             
-                            // Validate dimensions
-                            if (width === 0 || height === 0) {
-                                reject(new Error('מימדי תמונה לא תקינים'));
-                                return;
-                            }
-                            
+                            // Resize if too large
                             const maxDimension = 1200;
-                            if (width > height && width > maxDimension) {
-                                height = Math.round((height * maxDimension) / width);
-                                width = maxDimension;
-                            } else if (height > maxDimension) {
-                                width = Math.round((width * maxDimension) / height);
-                                height = maxDimension;
+                            if (width > maxDimension || height > maxDimension) {
+                                if (width > height) {
+                                    height = Math.round((height * maxDimension) / width);
+                                    width = maxDimension;
+                                } else {
+                                    width = Math.round((width * maxDimension) / height);
+                                    height = maxDimension;
+                                }
                             }
                             
                             canvas.width = width;
                             canvas.height = height;
                             
-                            const ctx = canvas.getContext('2d', { alpha: false });
+                            // Get context
+                            const ctx = canvas.getContext('2d');
                             if (!ctx) {
-                                reject(new Error('לא ניתן ליצור context'));
+                                reject(new Error('שגיאה ביצירת Canvas'));
                                 return;
                             }
                             
-                            // Fill white background for transparent images
+                            // White background for transparency
                             ctx.fillStyle = '#FFFFFF';
                             ctx.fillRect(0, 0, width, height);
                             
                             // Draw image
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // Compress with quality adjustment
-                            let quality = 0.85;
-                            let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            // Convert to JPEG with compression
+                            let quality = 0.8;
+                            let result = canvas.toDataURL('image/jpeg', quality);
                             
-                            // Reduce quality if needed
-                            let attempts = 0;
-                            const maxAttempts = 10;
-                            while (compressedDataUrl.length > maxSizeKB * 1024 * 1.37 && quality > 0.3 && attempts < maxAttempts) {
-                                quality -= 0.05;
-                                compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                                attempts++;
+                            // Try to reduce size if needed (max 5 attempts)
+                            for (let i = 0; i < 5 && result.length > maxSizeKB * 1024 * 1.37; i++) {
+                                quality -= 0.1;
+                                if (quality < 0.3) break;
+                                result = canvas.toDataURL('image/jpeg', quality);
                             }
                             
-                            resolve(compressedDataUrl);
+                            resolve(result);
                         } catch (error) {
-                            console.error('Canvas error:', error);
                             reject(new Error('שגיאה בעיבוד התמונה'));
                         }
                     };
                     
-                    img.src = event.target.result;
+                    // Set image source
+                    try {
+                        img.src = event.target.result;
+                    } catch (error) {
+                        reject(new Error('שגיאה בהגדרת התמונה'));
+                    }
                 };
                 
+                // Read file
                 try {
                     reader.readAsDataURL(file);
                 } catch (error) {
-                    console.error('Read error:', error);
                     reject(new Error('שגיאה בקריאת הקובץ'));
                 }
             });
@@ -2612,7 +2617,7 @@
             }, 5000);
         }
 
-        // Image Preview
+        // Image Preview - Simplified for mobile
         document.getElementById('carImage').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             const previewDiv = document.getElementById('imagePreview');
@@ -2622,11 +2627,9 @@
                 return;
             }
             
-            console.log('File selected:', file.name, file.type, file.size);
-            
             // Check file size (max 10MB)
             if (file.size > 10 * 1024 * 1024) {
-                alert('הקובץ גדול מדי. מקסימום 10MB');
+                alert('הקובץ גדול מדי (מקסימום 10MB)');
                 e.target.value = '';
                 previewDiv.innerHTML = '';
                 return;
@@ -2640,6 +2643,9 @@
                 </div>
             `;
             
+            // Small delay to show loading
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             try {
                 const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
                 
@@ -2647,11 +2653,10 @@
                 const compressed = await compressImage(file, 700);
                 const compressedSizeKB = (compressed.length / 1024 / 1.37).toFixed(0);
                 
-                console.log('Image compressed successfully:', compressedSizeKB + 'KB');
-                
+                // Show preview
                 previewDiv.innerHTML = `
                     <div class="inline-block">
-                        <img src="${compressed}" class="w-40 h-40 object-cover rounded-lg border-2 border-amber-400 shadow-lg" alt="Preview">
+                        <img src="${compressed}" class="w-40 h-40 object-cover rounded-lg border-2 border-amber-400 shadow-lg" alt="תצוגה מקדימה">
                         <div class="mt-2 text-center">
                             <p class="text-xs text-green-600 font-semibold">✓ התמונה נדחסה בהצלחה</p>
                             <p class="text-xs text-gray-500">${originalSizeMB}MB → ${compressedSizeKB}KB</p>
@@ -2659,18 +2664,14 @@
                     </div>
                 `;
             } catch (error) {
-                console.error('Image processing error:', error);
-                
-                // Show detailed error message
-                let errorMessage = 'שגיאה בעיבוד התמונה';
-                if (error.message) {
-                    errorMessage += ': ' + error.message;
-                }
-                
+                // Show error
+                const errorMsg = error.message || 'שגיאה לא ידועה';
                 previewDiv.innerHTML = `
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                        <p class="text-red-700 text-sm font-semibold mb-2">❌ ${errorMessage}</p>
-                        <button onclick="document.getElementById('carImage').click()" class="text-xs text-red-600 underline hover:text-red-800">
+                    <div class="bg-red-50 border border-red-300 rounded-lg p-4 text-center">
+                        <p class="text-red-700 text-sm font-semibold mb-2">❌ ${errorMsg}</p>
+                        <p class="text-red-600 text-xs mb-2">נסה להשתמש בתמונה אחרת</p>
+                        <button onclick="document.getElementById('carImage').value=''; document.getElementById('imagePreview').innerHTML=''; document.getElementById('carImage').click();" 
+                                class="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
                             נסה שוב
                         </button>
                     </div>
