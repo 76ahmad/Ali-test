@@ -898,7 +898,7 @@
                             <div class="text-amber-800 font-black mb-3" style="font-size: 22px;">👆 לחץ כאן להעלאת תמונה</div>
                             <div class="text-amber-700 font-semibold" style="font-size: 16px;">📷 מהמצלמה או מהגלריה</div>
                             <div class="text-gray-600 text-sm mt-2">JPG, PNG עד 10MB</div>
-                            <input type="file" id="carImage" accept="image/jpeg,image/png,image/jpg,image/webp" class="hidden">
+                            <input type="file" id="carImage" accept="image/*" class="hidden">
                         </label>
                     </div>
                     <div id="imagePreview" class="mt-4 flex justify-center"></div>
@@ -2694,13 +2694,22 @@
 
         // Image Preview - Simplified for mobile
         document.getElementById('carImage').addEventListener('change', async (e) => {
+            console.log('File input changed!');
             const file = e.target.files[0];
+            console.log('Selected file:', file);
             const previewDiv = document.getElementById('imagePreview');
             
             if (!file) {
+                console.log('No file selected');
                 previewDiv.innerHTML = '';
                 return;
             }
+            
+            console.log('File details:', {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
             
             // Check file size (max 10MB)
             if (file.size > 10 * 1024 * 1024) {
@@ -2722,10 +2731,12 @@
             await new Promise(resolve => setTimeout(resolve, 100));
             
             try {
+                console.log('Starting compression...');
                 const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
                 
                 // Compress image
                 const compressed = await compressImage(file, 700);
+                console.log('Compression successful!');
                 const compressedSizeKB = (compressed.length / 1024 / 1.37).toFixed(0);
                 
                 // Show preview with change button
@@ -2743,6 +2754,7 @@
                     </div>
                 `;
             } catch (error) {
+                console.error('Compression error:', error);
                 // Show error
                 const errorMsg = error.message || 'שגיאה לא ידועה';
                 previewDiv.innerHTML = `
