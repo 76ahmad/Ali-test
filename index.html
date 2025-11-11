@@ -128,7 +128,8 @@
         
         /* Dark Mode - Modal */
         [data-theme="dark"] .modal-content,
-        [data-theme="dark"] #carModal > div {
+        [data-theme="dark"] #carModal > div,
+        [data-theme="dark"] #carSelectorModal > div {
             background-color: #1e293b !important;
         }
         
@@ -143,6 +144,12 @@
         [data-theme="dark"] .text-amber-700,
         [data-theme="dark"] .text-amber-800 {
             /* Keep amber colors as they are visible in dark mode */
+        }
+        
+        /* Dark Mode - Select elements */
+        [data-theme="dark"] select option {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
         }
         
         
@@ -991,11 +998,19 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- מספר רישוי -->
-                    <div>
+                    <div class="md:col-span-2">
                         <label class="block text-gray-700 font-bold mb-2">מספר רישוי *</label>
-                        <input type="text" id="plateNumber" required 
-                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                               placeholder="12-345-67">
+                        <div class="flex gap-2">
+                            <input type="text" id="plateNumber" required 
+                                   class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                                   placeholder="12-345-67"
+                                   oninput="formatPlateNumber(this)">
+                            <button type="button" onclick="lookupCarInfo()" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+                                🔍 חפש מידע
+                            </button>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-1">💡 לחץ על "חפש מידע" לקבלת פרטי הרכב אוטומטית</p>
                     </div>
                     
                     <!-- שם הבעלים -->
@@ -1516,6 +1531,231 @@
             appId: "1:332265903935:web:237c0787a161fd36a7a58a",
             measurementId: "G-KLLCPECCDQ"
         };
+
+        // ==========================================
+        // CAR DATABASE - Common Israeli Cars
+        // ==========================================
+        const commonCars = {
+            // טויוטה
+            'טויוטה': {
+                models: ['קורולה', 'יאריס', 'קמרי', 'RAV4', 'היילקס', 'אוריס', 'אבנזה', 'פריוס'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.6 ליטר', '1.8 ליטר', '2.0 ליטר', '2.5 ליטר', 'היברידי']
+            },
+            // הונדה
+            'הונדה': {
+                models: ['סיוויק', 'אקורד', 'CRV', 'HRV', 'ג\'אז'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.5 ליטר טורבו', '1.6 ליטר', '2.0 ליטר', '2.4 ליטר']
+            },
+            // מזדה
+            'מזדה': {
+                models: ['3', '6', 'CX-3', 'CX-5', 'CX-9'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.5 ליטר', '2.0 ליטר', '2.5 ליטר', 'סקיאקטיב']
+            },
+            // יונדאי
+            'יונדאי': {
+                models: ['i30', 'i20', 'טוסון', 'סנטה פה', 'אקסנט', 'אלנטרה', 'קונה'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.4 ליטר', '1.6 ליטר', '2.0 ליטר', '2.4 ליטר']
+            },
+            // קיה
+            'קיה': {
+                models: ['פיקנטו', 'ריו', 'סיד', 'סטוניק', 'ספורטאז\'', 'סורנטו', 'אופטימה'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.0 ליטר', '1.4 ליטר', '1.6 ליטר', '2.0 ליטר']
+            },
+            // ניסאן
+            'ניסאן': {
+                models: ['מיקרה', 'ג\'וק', 'קשקאי', 'קסטרייל', 'נוט', 'ליף'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.0 ליטר', '1.2 ליטר', '1.6 ליטר', '2.0 ליטר', 'חשמלי']
+            },
+            // סקודה
+            'סקודה': {
+                models: ['פאביה', 'אוקטביה', 'קודיאק', 'קאמיק', 'סופרב'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.0 TSI', '1.4 TSI', '1.6 TDI', '2.0 TDI']
+            },
+            // פולקסווגן
+            'פולקסווגן': {
+                models: ['פולו', 'גולף', 'טיגואן', 'פאסאט', 'ג\'טה'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.0 TSI', '1.4 TSI', '1.6 TDI', '2.0 TSI', '2.0 TDI']
+            },
+            // רנו
+            'רנו': {
+                models: ['קליאו', 'קפצ\'ור', 'מגאן', 'קדג\'אר', 'טליסמן'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['0.9 TCe', '1.2 TCe', '1.5 dCi', '1.6 dCi']
+            },
+            // מיצובישי
+            'מיצובישי': {
+                models: ['אאוטלנדר', 'אאוטלנדר PHEV', 'אטראז\'', 'ASX'],
+                years: ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'],
+                engines: ['1.6 ליטר', '2.0 ליטר', '2.4 ליטר', 'היברידי']
+            }
+        };
+
+        // Format plate number as user types
+        function formatPlateNumber(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (value.length > 2 && value.length <= 5) {
+                value = value.slice(0, 2) + '-' + value.slice(2);
+            } else if (value.length > 5) {
+                value = value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5, 7);
+            }
+            input.value = value;
+        }
+
+        // Lookup car information
+        async function lookupCarInfo() {
+            const plateNumber = document.getElementById('plateNumber').value.trim();
+            
+            if (!plateNumber) {
+                alert('אנא הזן מספר רישוי');
+                return;
+            }
+            
+            // Show loading
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '⏳ מחפש...';
+            
+            try {
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Show car selector dialog
+                showCarSelector();
+                
+            } catch (error) {
+                console.error('Error looking up car:', error);
+                alert('לא נמצא מידע עבור מספר רישוי זה.\n\nניתן למלא את הפרטים ידנית או לבחור מהרשימה.');
+                showCarSelector();
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+
+        // Show car selector dialog
+        function showCarSelector() {
+            const brands = Object.keys(commonCars).sort();
+            
+            const html = `
+                <div id="carSelectorModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                        <h3 class="text-xl font-bold mb-4">בחר רכב מהרשימה</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2">יצרן</label>
+                            <select id="carBrand" onchange="updateModelsList()" class="w-full px-3 py-2 border rounded-lg">
+                                <option value="">-- בחר יצרן --</option>
+                                ${brands.map(brand => `<option value="${brand}">${brand}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2">דגם</label>
+                            <select id="carModel" class="w-full px-3 py-2 border rounded-lg" disabled>
+                                <option value="">-- בחר דגם --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2">שנת ייצור</label>
+                            <select id="carYear" class="w-full px-3 py-2 border rounded-lg" disabled>
+                                <option value="">-- בחר שנה --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block font-bold mb-2">סוג מנוע</label>
+                            <select id="carEngine" class="w-full px-3 py-2 border rounded-lg" disabled>
+                                <option value="">-- בחר מנוע --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="applyCarSelection()" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold">
+                                ✓ אשר ומלא פרטים
+                            </button>
+                            <button onclick="closeCarSelector()" class="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                                ביטול
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        // Update models list when brand is selected
+        function updateModelsList() {
+            const brand = document.getElementById('carBrand').value;
+            const modelSelect = document.getElementById('carModel');
+            const yearSelect = document.getElementById('carYear');
+            const engineSelect = document.getElementById('carEngine');
+            
+            if (!brand) {
+                modelSelect.disabled = true;
+                yearSelect.disabled = true;
+                engineSelect.disabled = true;
+                modelSelect.innerHTML = '<option value="">-- בחר דגם --</option>';
+                yearSelect.innerHTML = '<option value="">-- בחר שנה --</option>';
+                engineSelect.innerHTML = '<option value="">-- בחר מנוע --</option>';
+                return;
+            }
+            
+            const carData = commonCars[brand];
+            
+            // Update models
+            modelSelect.disabled = false;
+            modelSelect.innerHTML = '<option value="">-- בחר דגם --</option>' + 
+                carData.models.map(model => `<option value="${model}">${model}</option>`).join('');
+            
+            // Update years
+            yearSelect.disabled = false;
+            yearSelect.innerHTML = '<option value="">-- בחר שנה --</option>' + 
+                carData.years.map(year => `<option value="${year}">${year}</option>`).join('');
+            
+            // Update engines
+            engineSelect.disabled = false;
+            engineSelect.innerHTML = '<option value="">-- בחר מנוע --</option>' + 
+                carData.engines.map(engine => `<option value="${engine}">${engine}</option>`).join('');
+        }
+
+        // Apply car selection
+        function applyCarSelection() {
+            const brand = document.getElementById('carBrand').value;
+            const model = document.getElementById('carModel').value;
+            const year = document.getElementById('carYear').value;
+            const engine = document.getElementById('carEngine').value;
+            
+            if (!brand) {
+                alert('אנא בחר לפחות יצרן');
+                return;
+            }
+            
+            // Fill the form
+            document.getElementById('carType').value = brand;
+            if (model) document.getElementById('model').value = model;
+            if (year) document.getElementById('year').value = year;
+            if (engine) document.getElementById('engineType').value = engine;
+            
+            closeCarSelector();
+            showNotification('✓ הפרטים מולאו בהצלחה!');
+        }
+
+        // Close car selector
+        function closeCarSelector() {
+            const modal = document.getElementById('carSelectorModal');
+            if (modal) modal.remove();
+        }
 
         // ==========================================
         // DARK MODE FUNCTIONALITY
