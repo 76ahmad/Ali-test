@@ -885,7 +885,7 @@
                             </svg>
                             <div class="text-gray-700 font-semibold mb-1">📸 לחץ כאן להעלאת תמונה</div>
                             <div class="text-gray-500 text-sm">JPG, PNG עד 10MB</div>
-                            <input type="file" id="carImage" accept="image/*" capture="environment" class="hidden">
+                            <input type="file" id="carImage" accept="image/*" class="hidden">
                         </label>
                     </div>
                     <div id="imagePreview" class="mt-3 flex justify-center"></div>
@@ -951,14 +951,6 @@
                                placeholder="2020">
                     </div>
                     
-                    <!-- קוד רכב (VIN) -->
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2">קוד רכב (VIN)</label>
-                        <input type="text" id="vinCode" maxlength="17"
-                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                               placeholder="17 תווים">
-                    </div>
-                    
                     <!-- קוד התנעה -->
                     <div>
                         <label class="block text-gray-700 font-bold mb-2">קוד התנעה (אימוביליזר)</label>
@@ -985,17 +977,6 @@
                         <input type="text" id="enginePower"
                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                                placeholder='150 כ"ס / 2000 סמ"ק'>
-                    </div>
-                    
-                    <!-- סטטוס רכב -->
-                    <div class="md:col-span-2">
-                        <label class="block text-gray-700 font-bold mb-2">סטטוס רכב</label>
-                        <select id="carStatus" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                            <option value="waiting">ממתין לטיפול</option>
-                            <option value="in_progress">בטיפול</option>
-                            <option value="ready">מוכן לאיסוף</option>
-                            <option value="completed">הושלם</option>
-                        </select>
                     </div>
                 </div>
                 
@@ -2023,11 +2004,9 @@
             document.getElementById('carType').value = car.carType || '';
             document.getElementById('model').value = car.model || '';
             document.getElementById('year').value = car.year || '';
-            document.getElementById('vinCode').value = car.vinCode || '';
             document.getElementById('immobilizerCode').value = car.immobilizerCode || '';
             document.getElementById('engineType').value = car.engineType || '';
             document.getElementById('enginePower').value = car.enginePower || '';
-            document.getElementById('carStatus').value = car.carStatus || 'waiting';
             
             if (car.imageUrl) {
                 document.getElementById('imagePreview').innerHTML = 
@@ -2054,7 +2033,6 @@
                     carType: document.getElementById('carType').value.trim(),
                     model: document.getElementById('model').value.trim(),
                     year: document.getElementById('year').value.trim(),
-                    vinCode: document.getElementById('vinCode').value.trim(),
                     immobilizerCode: document.getElementById('immobilizerCode').value.trim(),
                     engineType: document.getElementById('engineType').value.trim(),
                     enginePower: document.getElementById('enginePower').value.trim(),
