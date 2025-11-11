@@ -40,6 +40,33 @@
             --shadow-md: 0 6px 12px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.15);
             --shadow-xl: 0 20px 40px -10px rgb(0 0 0 / 0.2);
+            
+            /* Light Mode Colors */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+        }
+        
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            --shadow-md: 0 6px 12px -2px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.5);
+            --shadow-xl: 0 20px 40px -10px rgb(0 0 0 / 0.6);
         }
         
         * {
@@ -49,18 +76,51 @@
         }
         
         body {
-            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: var(--gray-900);
+            color: var(--text-primary);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Dark Mode Toggle Button */
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+        }
+        
+        .theme-toggle-slider {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(28px);
         }
         
         /* Loading Animation */
         .loader {
             width: 60px;
             height: 60px;
-            border: 5px solid var(--gray-200);
+            border: 5px solid var(--border-color);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
@@ -83,12 +143,12 @@
         
         /* Card Styles */
         .card {
-            background: var(--white);
+            background: var(--card-bg);
             border-radius: 16px;
             box-shadow: var(--shadow);
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
         }
         
         .card:hover {
@@ -146,15 +206,15 @@
         }
         
         .btn-secondary {
-            background: var(--white);
-            color: var(--gray-700);
-            border: 2px solid var(--gray-200);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
             box-shadow: var(--shadow-sm);
         }
         
         .btn-secondary:hover {
             border-color: var(--primary);
-            background: var(--gray-50);
+            background: var(--bg-tertiary);
             transform: translateY(-2px);
         }
         
@@ -190,8 +250,8 @@
         
         /* Header */
         .app-header {
-            background: var(--white);
-            border-bottom: 1px solid var(--gray-200);
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
             backdrop-filter: blur(10px);
             position: sticky;
@@ -218,21 +278,24 @@
         
         /* User Badge */
         .user-badge {
-            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-            color: var(--gray-800);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             padding: 0.625rem 1.25rem;
             border-radius: 12px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
         }
         
         /* Input Styles */
         input, select, textarea {
             transition: all 0.2s ease;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-color: var(--border-color);
         }
         
         input:focus, select:focus, textarea:focus {
@@ -259,33 +322,33 @@
         }
         
         .badge-secondary {
-            background: var(--gray-100);
-            color: var(--gray-700);
-            border: 1px solid var(--gray-200);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
         }
         
         /* Status Badges */
         .status-waiting {
             background: rgba(234, 179, 8, 0.1);
-            color: #ca8a04;
+            color: #eab308;
             border: 1px solid rgba(234, 179, 8, 0.2);
         }
         
         .status-progress {
             background: rgba(59, 130, 246, 0.1);
-            color: #2563eb;
+            color: #3b82f6;
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
         
         .status-ready {
             background: rgba(16, 185, 129, 0.1);
-            color: #059669;
+            color: #10b981;
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
         
         .status-completed {
             background: rgba(100, 116, 139, 0.1);
-            color: #475569;
+            color: #94a3b8;
             border: 1px solid rgba(100, 116, 139, 0.2);
         }
         
@@ -296,18 +359,22 @@
             animation: fadeIn 0.2s ease;
         }
         
+        [data-theme="dark"] .modal-backdrop {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
         /* Info Item */
         .info-item {
             display: flex;
             align-items: center;
             gap: 0.625rem;
-            color: var(--gray-600);
+            color: var(--text-secondary);
             font-size: 0.875rem;
             padding: 0.5rem 0;
         }
         
         .info-item strong {
-            color: var(--gray-900);
+            color: var(--text-primary);
             font-weight: 600;
         }
         
@@ -324,13 +391,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-            border-bottom: 1px solid var(--gray-200);
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
         
         .car-image-placeholder:hover {
-            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+            background: var(--bg-primary);
         }
         
         /* Scrollbar */
@@ -340,7 +407,7 @@
         }
         
         ::-webkit-scrollbar-track {
-            background: var(--gray-100);
+            background: var(--bg-tertiary);
         }
         
         ::-webkit-scrollbar-thumb {
@@ -354,7 +421,7 @@
         
         /* Loading Screen */
         .loading-screen {
-            background: linear-gradient(135deg, var(--white) 0%, var(--gray-50) 100%);
+            background: var(--bg-secondary);
             animation: fadeIn 0.3s ease;
         }
         
@@ -362,7 +429,7 @@
         .section-title {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--gray-900);
+            color: var(--text-primary);
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
@@ -378,10 +445,10 @@
         
         /* Stats Card */
         .stat-card {
-            background: var(--white);
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 1.5rem;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
             transition: all 0.3s ease;
         }
@@ -406,6 +473,11 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
+        [data-theme="dark"] .glass {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
         /* Notification */
         .notification {
             animation: slideUp 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -422,7 +494,7 @@
         /* Divider */
         .divider {
             height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--gray-200) 50%, transparent 100%);
+            background: linear-gradient(90deg, transparent 0%, var(--border-color) 50%, transparent 100%);
         }
     </style>
 
@@ -507,6 +579,11 @@
                     </div>
                     
                     <div class="flex items-center gap-3">
+                        <div class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع الليلي">
+                            <div class="theme-toggle-slider">
+                                <span id="themeIcon">☀️</span>
+                            </div>
+                        </div>
                         <div class="user-badge">
                             <span class="text-lg">👤</span>
                             <span id="userName" class="font-semibold">משתמש</span>
@@ -1126,6 +1203,43 @@
             measurementId: "G-KLLCPECCDQ"
         };
 
+        // ==========================================
+        // DARK MODE FUNCTIONALITY
+        // ==========================================
+        
+        // Initialize theme from localStorage
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+        
+        // Toggle theme
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Show notification
+            const message = newTheme === 'dark' ? 'הופעל מצב לילה 🌙' : 'הופעל מצב יום ☀️';
+            showNotification(message);
+        }
+        
+        // Update theme icon
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+        }
+        
+        // Initialize theme on page load
+        initTheme();
+        
+        // ==========================================
         // Initialize Firebase
         let app, db, auth;
         let currentUser = null;
