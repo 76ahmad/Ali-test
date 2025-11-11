@@ -2524,8 +2524,8 @@
 
         // Render Dashboard
         function renderDashboard() {
-            // Count cars by status
-            const waiting = cars.filter(c => c.carStatus === 'waiting' || !c.carStatus);
+            // Count cars by status - ONLY cars with explicit status
+            const waiting = cars.filter(c => c.carStatus === 'waiting');
             const inProgress = cars.filter(c => c.carStatus === 'in_progress');
             const ready = cars.filter(c => c.carStatus === 'ready');
             const completed = cars.filter(c => c.carStatus === 'completed');
@@ -2638,19 +2638,16 @@
             if (!confirm(`האם להסיר את ${car.plateNumber} מלוח הבקרה?`)) return;
             
             try {
-                // Remove status from car (not delete car)
+                // Remove status from car in Firebase
                 await db.collection('cars').doc(carId).update({
                     carStatus: firebase.firestore.FieldValue.delete(),
                     statusUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Update local cars array properly
+                // Update local cars array - set to undefined
                 const carIndex = cars.findIndex(c => c.id === carId);
                 if (carIndex !== -1) {
-                    // Create new object without carStatus
-                    const updatedCar = { ...cars[carIndex] };
-                    delete updatedCar.carStatus;
-                    cars[carIndex] = updatedCar;
+                    cars[carIndex].carStatus = undefined;
                 }
                 
                 // Update both dashboard and main grid
