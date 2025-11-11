@@ -291,15 +291,21 @@
             
             /* Image upload on mobile */
             label[for="carImage"] {
-                padding: 2rem 1rem !important;
+                padding: 3rem 1.5rem !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 touch-action: manipulation;
+                min-height: 220px !important;
+                border-width: 5px !important;
             }
             
             label[for="carImage"] svg {
-                width: 3rem !important;
-                height: 3rem !important;
+                width: 4rem !important;
+                height: 4rem !important;
+            }
+            
+            label[for="carImage"] div {
+                font-size: 1.3rem !important;
             }
             
             #imagePreview img {
@@ -343,11 +349,11 @@
             
             /* Better touch target for file input */
             label[for="carImage"] {
-                min-height: 120px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
+                min-height: 200px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
             }
         }
         
@@ -882,20 +888,20 @@
             
             <form id="carForm">
                 <!-- תמונת הרכב -->
-                <div class="mb-6 bg-amber-50 p-4 rounded-lg border-2 border-amber-200">
-                    <label class="block text-gray-800 font-bold mb-3 text-center text-lg">📸 תמונת הרכב</label>
-                    <div class="flex justify-center mb-3">
-                        <label for="carImage" class="cursor-pointer bg-white border-3 border-dashed border-amber-400 rounded-xl p-8 hover:bg-amber-50 transition-all hover:border-amber-600 w-full max-w-md text-center shadow-lg">
-                            <svg class="w-16 h-16 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="mb-6">
+                    <label class="block text-gray-800 font-bold mb-4 text-center text-xl">📸 תמונת הרכב</label>
+                    <div class="flex justify-center mb-2">
+                        <label for="carImage" class="cursor-pointer bg-gradient-to-br from-amber-100 to-amber-50 border-4 border-dashed border-amber-500 rounded-2xl p-10 hover:from-amber-200 hover:to-amber-100 transition-all hover:border-amber-600 w-full text-center shadow-2xl active:scale-95" style="min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <svg class="w-20 h-20 text-amber-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            <div class="text-amber-700 font-bold mb-2 text-lg">👆 לחץ כאן להעלאת תמונה</div>
-                            <div class="text-gray-600 text-base">JPG, PNG עד 10MB</div>
+                            <div class="text-amber-800 font-black mb-3" style="font-size: 22px;">👆 לחץ כאן להעלאת תמונה</div>
+                            <div class="text-amber-700 font-semibold" style="font-size: 16px;">📷 מהמצלמה או מהגלריה</div>
+                            <div class="text-gray-600 text-sm mt-2">JPG, PNG עד 10MB</div>
                             <input type="file" id="carImage" accept="image/jpeg,image/png,image/jpg,image/webp" class="hidden">
                         </label>
                     </div>
                     <div id="imagePreview" class="mt-4 flex justify-center"></div>
-                    <p class="text-sm text-green-700 font-semibold mt-3 text-center bg-green-100 py-2 rounded-lg">✓ דחיסה אוטומטית לשמירת מקום</p>
                 </div>
 
 
