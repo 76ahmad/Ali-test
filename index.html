@@ -3696,21 +3696,6 @@
         // SETTINGS FUNCTIONS
         // ==========================================
 
-        let sparePartsPhone = '';
-
-        // Load Settings
-        async function loadSettings() {
-            try {
-                const settingsDoc = await db.collection('settings').doc(currentUser.uid).get();
-                if (settingsDoc.exists) {
-                    sparePartsPhone = settingsDoc.data().sparePartsPhone || '';
-                }
-            } catch (error) {
-                console.error('Error loading settings:', error);
-            }
-        }
-
-        // Open Settings
         // ==========================================
         // SPARE PARTS CONTACTS MANAGEMENT
         // ==========================================
@@ -3949,24 +3934,6 @@
             }, 3000);
         }
 
-        async function orderSparePart(partName, carType, model, year) {
-            // Load settings if not loaded
-            if (!sparePartsPhone) {
-                await loadSettings();
-            }
-            
-            if (!sparePartsPhone) {
-                alert('אנא הגדר מספר טלפון של חנות חלפים בהגדרות');
-                openSettings();
-                return;
-            }
-            
-            const phone = sparePartsPhone.replace(/^0/, '972').replace(/[^0-9]/g, '');
-            const message = `שלום,\n\nאני מעוניין להזמין:\n📦 חלק: ${partName}\n\n🚗 רכב:\nסוג: ${carType}\nדגם: ${model}\nשנה: ${year}\n\nתודה!`;
-            
-            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-        }
 
         // ==========================================
         // BACKUP & RESTORE FUNCTIONS
