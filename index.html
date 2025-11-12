@@ -1005,9 +1005,13 @@
                                    class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                                    placeholder="12345678" maxlength="8"
                                    >
+                            <button type="button" onclick="searchCarByPlateNumber()" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold flex items-center gap-2 whitespace-nowrap">
+                                🔍 חפש
+                            </button>
                         </div>
                         <p class="text-xs text-blue-600 mt-2 font-semibold">
-                            💡 הזן מספר רישוי 7-8 ספרות (ללא מקפים) - המערכת תחפש אוטומטית פרטי רכב
+                            💡 הזן מספר רישוי 7-8 ספרות (ללא מקפים) - ולחץ על כפתור "חפש"
                         </p>
                         <div id="apiStatus" class="mt-2"></div>
                     </div>
@@ -4260,22 +4264,67 @@ async function fetchCarDataFromAPI(plateNumber) {
     }
 }
 
-// Auto-search when typing plate number
+// Manual search function when button is clicked
+function searchCarByPlateNumber() {
+    const plateNumber = document.getElementById('plateNumber').value.trim();
+    const apiStatus = document.getElementById('apiStatus');
+    
+    if (!plateNumber) {
+        apiStatus.innerHTML = '<div class="text-red-600 text-sm">נא להזין מספר רישוי</div>';
+        setTimeout(() => apiStatus.innerHTML = '', 2000);
+        return;
+    }
+    
+    if (plateNumber.length < 7) {
+        apiStatus.innerHTML = '<div class="text-orange-600 text-sm">מספר רישוי חייב להיות לפחות 7 ספרות</div>';
+        setTimeout(() => apiStatus.innerHTML = '', 2000);
+        return;
+    }
+    
+    fetchCarDataFromAPI(plateNumber);
+}
+
+// Clear form fields (except plate number and image)
+function clearCarFormFields() {
+    // Don't clear: plateNumber, carImage, imagePreview
+    // Clear all other fields
+    document.getElementById('ownerName').value = '';
+    document.getElementById('carType').value = '';
+    document.getElementById('model').value = '';
+    document.getElementById('year').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('engineType').value = '';
+    document.getElementById('enginePower').value = '';
+    document.getElementById('immobilizerCode').value = '';
+    
+    // Clear API status
+    document.getElementById('apiStatus').innerHTML = '';
+}
+
+// Monitor plate number input
 document.addEventListener('DOMContentLoaded', function() {
     const plateNumberInput = document.getElementById('plateNumber');
     
     if (plateNumberInput) {
+        let previousValue = '';
+        
         plateNumberInput.addEventListener('input', function(e) {
+            // Remove non-digits
             let value = e.target.value.replace(/\D/g, '');
             e.target.value = value;
             
-            if (apiTimeout) clearTimeout(apiTimeout);
+            // If user deleted the plate number (went from having value to empty)
+            if (previousValue && !value) {
+                clearCarFormFields();
+            }
             
-            // البحث يعمل مع 7 أرقام (سيارات قديمة) أو 8 أرقام (سيارات جديدة)
-            if (value.length >= 7) {
-                apiTimeout = setTimeout(() => fetchCarDataFromAPI(value), 800);
-            } else {
-                document.getElementById('apiStatus').innerHTML = '';
+            previousValue = value;
+        });
+        
+        // Also clear on backspace/delete when field becomes empty
+        plateNumberInput.addEventListener('keyup', function(e) {
+            if (!this.value.trim()) {
+                clearCarFormFields();
             }
         });
     }
