@@ -2353,8 +2353,22 @@
             submitBtn.textContent = 'שומר...';
             
             try {
+                const plateNumber = document.getElementById('plateNumber').value.trim();
+                
+                // Check for duplicate plate number (only when adding new car or changing plate number)
+                if (!editingCarId || (editingCarId && plateNumber !== cars.find(c => c.id === editingCarId)?.plateNumber)) {
+                    const duplicateCar = cars.find(c => c.plateNumber === plateNumber && c.id !== editingCarId);
+                    
+                    if (duplicateCar) {
+                        alert('⚠️ הרכב כבר קיים במערכת!\n\nמספר רישוי: ' + plateNumber + '\nבעלים: ' + duplicateCar.ownerName);
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        return;
+                    }
+                }
+                
                 const carData = {
-                    plateNumber: document.getElementById('plateNumber').value.trim(),
+                    plateNumber: plateNumber,
                     ownerName: document.getElementById('ownerName').value.trim(),
                     phone: document.getElementById('phone').value.trim(),
                     carType: document.getElementById('carType').value.trim(),
