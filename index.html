@@ -2206,7 +2206,7 @@
                                     ${m.kilometers ? `<div class="text-sm text-gray-600">🚗 ${m.kilometers} ק״מ</div>` : ''}
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="orderSparePart('${car.id}')" class="text-green-600 hover:underline text-sm">📦 הזמן חלק</button>
+                                    <button onclick="orderSparePartFromMaintenance('${car.id}', '${m.partName || ""}', '${m.workDescription || ""}')" class="text-green-600 hover:underline text-sm">📦 הזמן חלק</button>
                                     <button onclick="printMaintenance('${m.id}')" class="text-purple-600 hover:underline text-sm">🖨️ הדפס</button>
                                     <button onclick="editMaintenance('${m.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
                                     <button onclick="deleteMaintenance('${m.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
@@ -3915,6 +3915,116 @@
         }
 
         // Close Order Part Modal
+
+        // Order Spare Part From Maintenance Record (with pre-filled part name)
+        async function orderSparePartFromMaintenance(carId, partName, workDescription) {
+            await loadSparePartsContacts();
+            
+            if (sparePartsContacts.length === 0) {
+                alert('אנא הוסף ספק חלפים במספרי חלקי חילוף');
+                openSettings();
+                return;
+            }
+            
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+            
+            // Create supplier selection HTML
+            const supplierOptions = sparePartsContacts.map((contact, index) => 
+                `<option value="${index}">${contact.name} - ${contact.phone}</option>`
+            ).join('');
+            
+            // Show simplified modal - only supplier selection
+            const modalHTML = `
+                <div id="orderPartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full">
+                        <div class="bg-green-600 text-white p-6 rounded-t-lg">
+                            <h2 class="text-2xl font-bold">🛒 הזמנת חלק חילוף</h2>
+                        </div>
+                        
+                        <div class="p-6 space-y-4">
+                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                                <p class="font-bold text-lg mb-2">רכב: ${car.plateNumber}</p>
+                                <p class="text-sm text-gray-600">${car.carType || ''} ${car.model || ''} ${car.year || ''}</p>
+                                ${car.enginePower ? `<p class="text-sm text-gray-600">מנוע: ${car.enginePower}</p>` : ''}
+                                ${partName ? `
+                                    <div class="mt-3 pt-3 border-t border-blue-300">
+                                        <p class="font-bold text-green-700">🛠️ החלק: ${partName}</p>
+                                        ${workDescription ? `<p class="text-sm text-gray-600 mt-1">${workDescription}</p>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2 text-lg">מאיזה ספק תרצה להזמין?</label>
+                                <select id="supplierSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold">
+                                    ${supplierOptions}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">פרטים נוספים (אופציונלי)</label>
+                                <textarea id="partDetails" rows="3"
+                                          class="w-full px-4 py-2 border rounded-lg"
+                                          placeholder="מספר קטלוגי, כמות, הערות..."></textarea>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="sendSparePartOrderSimple('${carId}', '${partName.replace(/'/g, "\\'")}', '${workDescription.replace(/'/g, "\\'")}')" 
+                                        class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-bold text-lg">
+                                    📤 שלח הזמנה
+                                </button>
+                                <button onclick="closeOrderPartModal()" 
+                                        class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-bold">
+                                    ביטול
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Send Order with Pre-filled Part Info
+        function sendSparePartOrderSimple(carId, partName, workDescription) {
+            const supplierIndex = document.getElementById('supplierSelect').value;
+            const partDetails = document.getElementById('partDetails').value.trim();
+            
+            const supplier = sparePartsContacts[supplierIndex];
+            const car = cars.find(c => c.id === carId);
+            
+            if (!supplier || !car) return;
+            
+            // Build WhatsApp message
+            let message = `שלום ${supplier.name},\n\n`;
+            message += `אני מעוניין להזמין חלק חילוף:\n\n`;
+            message += `📋 *פרטי הרכב:*\n`;
+            message += `מספר רישוי: ${car.plateNumber}\n`;
+            if (car.carType) message += `סוג רכב: ${car.carType}\n`;
+            if (car.model) message += `דגם: ${car.model}\n`;
+            if (car.year) message += `שנה: ${car.year}\n`;
+            if (car.enginePower) message += `🔧 מנוע: ${car.enginePower}\n`;
+            message += `\n🛠️ *החלק המבוקש:*\n`;
+            message += `${partName}\n`;
+            if (workDescription) {
+                message += `\nתיאור: ${workDescription}\n`;
+            }
+            if (partDetails) {
+                message += `\nפרטים נוספים:\n${partDetails}\n`;
+            }
+            message += `\nתודה!`;
+            
+            const cleanPhone = supplier.phone.replace(/\D/g, '');
+            const phoneWithCode = cleanPhone.startsWith('972') ? cleanPhone : '972' + cleanPhone.replace(/^0/, '');
+            
+            const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            closeOrderPartModal();
+        }
+
         function closeOrderPartModal() {
             const modal = document.getElementById('orderPartModal');
             if (modal) {
