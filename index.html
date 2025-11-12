@@ -939,7 +939,7 @@
                         📅 יומן פגישות
                     </button>
                     <button onclick="openSettings()" class="btn btn-secondary">
-                        ⚙️ הגדרות
+                        ⚙️ מספר חלקי חילוף
                 </button>
                 <button onclick="openBackupModal()" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 flex items-center gap-2">
                     💾 גיבוי
@@ -1279,32 +1279,53 @@
     </div>
 
     <!-- Settings Modal -->
+    <!-- Settings Modal - Spare Parts Contacts -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full">
-            <div class="bg-orange-600 text-white p-6 rounded-t-lg">
-                <h2 class="text-2xl font-bold">⚙️ הגדרות</h2>
+        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="bg-orange-600 text-white p-6 rounded-t-lg sticky top-0">
+                <h2 class="text-2xl font-bold">📞 מספרי חלקי חילוף</h2>
             </div>
             
             <div class="p-6">
-                <div class="mb-6">
-                    <label class="block text-gray-700 font-bold mb-2">טלפון חנות חלפים</label>
-                    <input type="text" id="sparePartsPhone" 
-                           class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-orange-500"
-                           placeholder="050-1234567">
-                    <p class="text-xs text-gray-500 mt-1">מספר זה ישמש לשליחת הזמנות חלקים בוואטסאפ</p>
+                <p class="text-gray-600 mb-4">הוסף מספרי טלפון של ספקי חלקי חילוף. תוכל לבחור מהם בעת הזמנת חלקים.</p>
+                
+                <!-- List of Spare Parts Contacts -->
+                <div id="sparePartsContactsList" class="space-y-3 mb-4">
+                    <!-- Contacts will be loaded here -->
                 </div>
                 
-                <div class="flex gap-3">
-                    <button onclick="saveSettings()" class="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 font-bold">
-                        שמור
-                    </button>
+                <!-- Add New Contact Form -->
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="font-bold text-gray-700 mb-3">➕ הוסף ספק חדש</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-1">שם הספק</label>
+                            <input type="text" id="newSupplierName" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-orange-500"
+                                   placeholder="לדוגמה: חלפים מהירים, מוסך יוסי">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-1">מספר טלפון</label>
+                            <input type="text" id="newSupplierPhone" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-orange-500"
+                                   placeholder="050-1234567">
+                        </div>
+                        <button onclick="addSparePartsContact()" 
+                                class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold">
+                            ➕ הוסף ספק
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
                     <button onclick="closeSettings()" class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-bold">
-                        ביטול
+                        סגור
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Backup Modal -->
     <div id="backupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -1985,6 +2006,9 @@
                 });
                 
                 displayCars();
+                
+                // Load spare parts contacts
+                await loadSparePartsContacts();
             } catch (error) {
                 console.error('Error loading cars:', error);
             }
@@ -2182,7 +2206,7 @@
                                     ${m.kilometers ? `<div class="text-sm text-gray-600">🚗 ${m.kilometers} ק״מ</div>` : ''}
                                 </div>
                                 <div class="flex gap-2">
-                                    ${m.partName && car ? `<button onclick="orderSparePart('${m.partName.replace(/'/g, "\\'")}', '${car.carType || ''}', '${car.model || ''}', '${car.year || ''}')" class="text-green-600 hover:underline text-sm">📦 הזמן חלק</button>` : ''}
+                                    <button onclick="orderSparePart('${car.id}')" class="text-green-600 hover:underline text-sm">📦 הזמן חלק</button>
                                     <button onclick="printMaintenance('${m.id}')" class="text-purple-600 hover:underline text-sm">🖨️ הדפס</button>
                                     <button onclick="editMaintenance('${m.id}')" class="text-blue-600 hover:underline text-sm">עריכה</button>
                                     <button onclick="deleteMaintenance('${m.id}')" class="text-red-600 hover:underline text-sm">מחיקה</button>
@@ -3687,9 +3711,103 @@
         }
 
         // Open Settings
+        // ==========================================
+        // SPARE PARTS CONTACTS MANAGEMENT
+        // ==========================================
+
+        let sparePartsContacts = [];
+
+        // Load Spare Parts Contacts
+        async function loadSparePartsContacts() {
+            try {
+                const doc = await db.collection('settings').doc(currentUser.uid).get();
+                if (doc.exists && doc.data().sparePartsContacts) {
+                    sparePartsContacts = doc.data().sparePartsContacts;
+                } else {
+                    sparePartsContacts = [];
+                }
+            } catch (error) {
+                console.error('Error loading spare parts contacts:', error);
+                sparePartsContacts = [];
+            }
+        }
+
+        // Display Spare Parts Contacts List
+        function displaySparePartsContacts() {
+            const list = document.getElementById('sparePartsContactsList');
+            
+            if (sparePartsContacts.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-4">אין ספקים במערכת. הוסף ספק חדש מטה.</p>';
+                return;
+            }
+            
+            list.innerHTML = sparePartsContacts.map((contact, index) => `
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-gray-800">${contact.name}</p>
+                        <p class="text-gray-600 text-sm">${contact.phone}</p>
+                    </div>
+                    <button onclick="removeSparePartsContact(${index})" 
+                            class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">
+                        🗑️ מחק
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Add New Spare Parts Contact
+        async function addSparePartsContact() {
+            const name = document.getElementById('newSupplierName').value.trim();
+            const phone = document.getElementById('newSupplierPhone').value.trim();
+            
+            if (!name || !phone) {
+                alert('נא למלא את כל השדות');
+                return;
+            }
+            
+            sparePartsContacts.push({ name, phone });
+            
+            try {
+                await db.collection('settings').doc(currentUser.uid).set({
+                    sparePartsContacts: sparePartsContacts
+                }, { merge: true });
+                
+                document.getElementById('newSupplierName').value = '';
+                document.getElementById('newSupplierPhone').value = '';
+                
+                displaySparePartsContacts();
+                showNotification('הספק נוסף בהצלחה!');
+            } catch (error) {
+                console.error('Error saving contact:', error);
+                alert('שגיאה בשמירת הספק');
+            }
+        }
+
+        // Remove Spare Parts Contact
+        async function removeSparePartsContact(index) {
+            if (!confirm('האם אתה בטוח שברצונך למחוק ספק זה?')) {
+                return;
+            }
+            
+            sparePartsContacts.splice(index, 1);
+            
+            try {
+                await db.collection('settings').doc(currentUser.uid).set({
+                    sparePartsContacts: sparePartsContacts
+                }, { merge: true });
+                
+                displaySparePartsContacts();
+                showNotification('הספק נמחק בהצלחה!');
+            } catch (error) {
+                console.error('Error removing contact:', error);
+                alert('שגיאה במחיקת הספק');
+            }
+        }
+
+        // Open Settings (Spare Parts Contacts)
         async function openSettings() {
-            await loadSettings();
-            document.getElementById('sparePartsPhone').value = sparePartsPhone;
+            await loadSparePartsContacts();
+            displaySparePartsContacts();
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
@@ -3698,27 +3816,139 @@
             document.getElementById('settingsModal').classList.add('hidden');
         }
 
-        // Save Settings
-        async function saveSettings() {
-            try {
-                const phone = document.getElementById('sparePartsPhone').value.trim();
-                
-                await db.collection('settings').doc(currentUser.uid).set({
-                    sparePartsPhone: phone,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-                
-                sparePartsPhone = phone;
-                closeSettings();
-                showNotification('ההגדרות נשמרו בהצלחה');
-                
-            } catch (error) {
-                console.error('Error saving settings:', error);
-                alert('שגיאה בשמירת ההגדרות');
+        // Order Spare Part with Supplier Selection and Engine Size
+        async function orderSparePart(carId) {
+            await loadSparePartsContacts();
+            
+            if (sparePartsContacts.length === 0) {
+                alert('אנא הוסף ספק חלפים במספרי חלקי חילוף');
+                openSettings();
+                return;
+            }
+            
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+            
+            // Create supplier selection HTML
+            const supplierOptions = sparePartsContacts.map((contact, index) => 
+                `<option value="${index}">${contact.name} - ${contact.phone}</option>`
+            ).join('');
+            
+            // Show modal to select supplier and enter part details
+            const modalHTML = `
+                <div id="orderPartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full">
+                        <div class="bg-green-600 text-white p-6 rounded-t-lg">
+                            <h2 class="text-2xl font-bold">🛒 הזמנת חלק חילוף</h2>
+                        </div>
+                        
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <p class="font-bold">רכב: ${car.plateNumber}</p>
+                                <p class="text-sm text-gray-600">${car.carType || ''} ${car.model || ''} ${car.year || ''}</p>
+                                ${car.enginePower ? `<p class="text-sm text-gray-600">מנוע: ${car.enginePower}</p>` : ''}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">בחר ספק</label>
+                                <select id="supplierSelect" class="w-full px-4 py-2 border rounded-lg">
+                                    ${supplierOptions}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">שם החלק</label>
+                                <input type="text" id="partName" 
+                                       class="w-full px-4 py-2 border rounded-lg"
+                                       placeholder="לדוגמה: מסנן שמן, בלמים">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">פרטים נוספים (אופציונלי)</label>
+                                <textarea id="partDetails" rows="3"
+                                          class="w-full px-4 py-2 border rounded-lg"
+                                          placeholder="מספר קטלוגי, כמות, הערות..."></textarea>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="sendSparePartOrder('${carId}')" 
+                                        class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-bold">
+                                    📤 שלח הזמנה
+                                </button>
+                                <button onclick="closeOrderPartModal()" 
+                                        class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-bold">
+                                    ביטול
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Send Spare Part Order via WhatsApp
+        function sendSparePartOrder(carId) {
+            const supplierIndex = document.getElementById('supplierSelect').value;
+            const partName = document.getElementById('partName').value.trim();
+            const partDetails = document.getElementById('partDetails').value.trim();
+            
+            if (!partName) {
+                alert('נא להזין שם חלק');
+                return;
+            }
+            
+            const supplier = sparePartsContacts[supplierIndex];
+            const car = cars.find(c => c.id === carId);
+            
+            if (!supplier || !car) return;
+            
+            // Build WhatsApp message with engine size
+            let message = `שלום ${supplier.name},\n\n`;
+            message += `אני מעוניין להזמין חלק חילוף:\n\n`;
+            message += `📋 *פרטי הרכב:*\n`;
+            message += `מספר רישוי: ${car.plateNumber}\n`;
+            if (car.carType) message += `סוג רכב: ${car.carType}\n`;
+            if (car.model) message += `דגם: ${car.model}\n`;
+            if (car.year) message += `שנה: ${car.year}\n`;
+            if (car.enginePower) message += `🔧 מנוע: ${car.enginePower}\n`;
+            message += `\n🛠️ *החלק המבוקש:*\n`;
+            message += `${partName}\n`;
+            if (partDetails) {
+                message += `\nפרטים נוספים:\n${partDetails}\n`;
+            }
+            message += `\nתודה!`;
+            
+            const cleanPhone = supplier.phone.replace(/\D/g, '');
+            const phoneWithCode = cleanPhone.startsWith('972') ? cleanPhone : '972' + cleanPhone.replace(/^0/, '');
+            
+            const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            closeOrderPartModal();
+        }
+
+        // Close Order Part Modal
+        function closeOrderPartModal() {
+            const modal = document.getElementById('orderPartModal');
+            if (modal) {
+                modal.remove();
             }
         }
 
-        // Order Spare Part via WhatsApp
+        // Show Notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
         async function orderSparePart(partName, carType, model, year) {
             // Load settings if not loaded
             if (!sparePartsPhone) {
