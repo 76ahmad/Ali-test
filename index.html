@@ -4164,6 +4164,20 @@ async function fetchCarDataFromAPI(plateNumber) {
         // Clean the plate number
         const cleanPlateNumber = plateNumber.replace(/[-\s]/g, '');
         
+        /* 
+         * Available fields from data.gov.il API:
+         * - mispar_rechev: رقم السيارة
+         * - tozeret_nm: الشركة المصنعة (Toyota, Honda, etc.)
+         * - kinuy_mishari: الموديل التجاري
+         * - shnat_yitzur: سنة الصنع
+         * - baal_rechev: اسم المالك
+         * - delek: نوع الوقود (بنزין، דיזל، חשמלי، etc.)
+         * - koach_sus: قوة المحرك بالحصان
+         * - nefach_manoa: سعة المحرك (cm³)
+         * - degem_manoa: موديل المحرك
+         * - tzeva_rechev: لون السيارة
+         */
+        
         // Call the API
         const response = await fetch(`https://data.gov.il/api/3/action/datastore_search?resource_id=053cea08-09bc-40ec-8f7a-156f0677aff3&q=${cleanPlateNumber}`);
         
@@ -4176,15 +4190,68 @@ async function fetchCarDataFromAPI(plateNumber) {
         if (data.success && data.result.records && data.result.records.length > 0) {
             const carInfo = data.result.records[0];
             
-            // Fill form
+            console.log('Car Info from API:', carInfo); // للتحقق من البيانات المتاحة
+            
+            // Fill basic info
             if (carInfo.tozeret_nm) document.getElementById('carType').value = carInfo.tozeret_nm;
             if (carInfo.kinuy_mishari) document.getElementById('model').value = carInfo.kinuy_mishari;
             if (carInfo.shnat_yitzur) document.getElementById('year').value = carInfo.shnat_yitzur;
             
-            apiStatus.innerHTML = '<div class="text-green-600 text-sm font-semibold">✓ נמצאו פרטי הרכב</div>';
+            // Fill owner name if available
+            if (carInfo.baal_rechev) {
+                document.getElementById('ownerName').value = carInfo.baal_rechev;
+            }
+            
+            // Fill engine type (delek = fuel type)
+            if (carInfo.delek) {
+                const fuelType = carInfo.delek.trim();
+                const engineTypeSelect = document.getElementById('engineType');
+                
+                // Map fuel types to Hebrew
+                const fuelMapping = {
+                    'בנזין': 'בנזין',
+                    'דיזל': 'דיזל',
+                    'היברידי': 'היברידי',
+                    'חשמל': 'חשמלי',
+                    'חשמלי': 'חשמלי',
+                    'היברדי': 'היברידי',
+                    'BENZIN': 'בנזין',
+                    'DIESEL': 'דיזל',
+                    'HYBRID': 'היברידי',
+                    'ELECTRIC': 'חשמלי'
+                };
+                
+                // Try to find matching fuel type
+                for (const [key, value] of Object.entries(fuelMapping)) {
+                    if (fuelType.includes(key) || fuelType.toUpperCase().includes(key)) {
+                        engineTypeSelect.value = value;
+                        break;
+                    }
+                }
+            }
+            
+            // Fill engine power/size
+            let enginePowerText = '';
+            
+            // Horse power (degem_manoa can contain HP info)
+            if (carInfo.koach_sus) {
+                enginePowerText += carInfo.koach_sus + ' כ"ס';
+            }
+            
+            // Engine capacity (cm³)
+            if (carInfo.nefach_manoa) {
+                if (enginePowerText) enginePowerText += ' / ';
+                enginePowerText += carInfo.nefach_manoa + ' סמ"ק';
+            }
+            
+            if (enginePowerText) {
+                document.getElementById('enginePower').value = enginePowerText;
+            }
+            
+            apiStatus.innerHTML = '<div class="text-green-600 text-sm font-semibold">✓ נמצאו פרטי הרכב מהמאגר הממשלתי</div>';
             setTimeout(() => apiStatus.innerHTML = '', 3000);
         } else {
-            apiStatus.innerHTML = '<div class="text-orange-600 text-sm">לא נמצאו פרטים</div>';
+            apiStatus.innerHTML = '<div class="text-orange-600 text-sm">לא נמצאו פרטים במאגר</div>';
             setTimeout(() => apiStatus.innerHTML = '', 3000);
         }
     } catch (error) {
